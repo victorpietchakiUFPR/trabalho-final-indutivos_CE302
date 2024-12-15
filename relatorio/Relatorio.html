@@ -1,0 +1,1531 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="pt" xml:lang="pt"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.5.57">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Ana Beatriz da Silva Maques">
+<meta name="author" content="João Victor Pietchaki">
+<meta name="author" content="Leonardo Eizo Sakai">
+<meta name="author" content="Vitor Pignatari">
+<meta name="keywords" content="Análise de Dados, R, Shiny, Estatística, UFPR">
+
+<title>Análise da base US accidents</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="Relatorio_files/libs/clipboard/clipboard.min.js"></script>
+<script src="Relatorio_files/libs/quarto-html/quarto.js"></script>
+<script src="Relatorio_files/libs/quarto-html/popper.min.js"></script>
+<script src="Relatorio_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="Relatorio_files/libs/quarto-html/anchor.min.js"></script>
+<link href="Relatorio_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="Relatorio_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="Relatorio_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="Relatorio_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="Relatorio_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body>
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Índices</h2>
+   
+  <ul>
+  <li><a href="#introdução" id="toc-introdução" class="nav-link active" data-scroll-target="#introdução"><span class="header-section-number">1</span> Introdução</a></li>
+  <li><a href="#materiais-e-métodos" id="toc-materiais-e-métodos" class="nav-link" data-scroll-target="#materiais-e-métodos"><span class="header-section-number">2</span> Materiais e Métodos</a>
+  <ul>
+  <li><a href="#fonte-de-dados" id="toc-fonte-de-dados" class="nav-link" data-scroll-target="#fonte-de-dados"><span class="header-section-number">2.1</span> Fonte de Dados</a></li>
+  <li><a href="#a-base-de-dados-us_accidents" id="toc-a-base-de-dados-us_accidents" class="nav-link" data-scroll-target="#a-base-de-dados-us_accidents"><span class="header-section-number">2.2</span> A Base de Dados US_accidents</a>
+  <ul>
+  <li><a href="#grupo_variaveis" id="toc-grupo_variaveis" class="nav-link" data-scroll-target="#grupo_variaveis"><span class="header-section-number">2.2.1</span> Grupos de Variáveis</a></li>
+  </ul></li>
+  <li><a href="#manipulação-de-dados" id="toc-manipulação-de-dados" class="nav-link" data-scroll-target="#manipulação-de-dados"><span class="header-section-number">2.3</span> Manipulação de dados</a>
+  <ul>
+  <li><a href="#pré-processando-as-variáveis-do-grupo-tempo" id="toc-pré-processando-as-variáveis-do-grupo-tempo" class="nav-link" data-scroll-target="#pré-processando-as-variáveis-do-grupo-tempo"><span class="header-section-number">2.3.1</span> Pré-processando as variáveis do grupo ‘Tempo’</a></li>
+  <li><a href="#pré-processando-as-variáveis-do-grupo-posição-geográfica" id="toc-pré-processando-as-variáveis-do-grupo-posição-geográfica" class="nav-link" data-scroll-target="#pré-processando-as-variáveis-do-grupo-posição-geográfica"><span class="header-section-number">2.3.2</span> Pré-Processando as variáveis do grupo posição geográfica</a></li>
+  <li><a href="#pré-processando-as-variáveis-do-grupo-condições-climáticas" id="toc-pré-processando-as-variáveis-do-grupo-condições-climáticas" class="nav-link" data-scroll-target="#pré-processando-as-variáveis-do-grupo-condições-climáticas"><span class="header-section-number">2.3.3</span> Pré-processando as variáveis do grupo ‘Condições Climáticas’</a></li>
+  <li><a href="#pré-processando-as-variáveis-do-grupo-condiçoes-de-infraestrutura-e-sinalizaçao" id="toc-pré-processando-as-variáveis-do-grupo-condiçoes-de-infraestrutura-e-sinalizaçao" class="nav-link" data-scroll-target="#pré-processando-as-variáveis-do-grupo-condiçoes-de-infraestrutura-e-sinalizaçao"><span class="header-section-number">2.3.4</span> Pré-processando as variáveis do grupo ‘Condiçoes de Infraestrutura e Sinalizaçao’</a></li>
+  <li><a href="#pré-processando-as-variáveis-do-grupo-duração-do-acidente." id="toc-pré-processando-as-variáveis-do-grupo-duração-do-acidente." class="nav-link" data-scroll-target="#pré-processando-as-variáveis-do-grupo-duração-do-acidente."><span class="header-section-number">2.3.5</span> Pré-processando as variáveis do grupo “Duração do acidente”.</a></li>
+  </ul></li>
+  <li><a href="#técnicas-estatísticas-aplicadas" id="toc-técnicas-estatísticas-aplicadas" class="nav-link" data-scroll-target="#técnicas-estatísticas-aplicadas"><span class="header-section-number">2.4</span> Técnicas Estatísticas Aplicadas</a>
+  <ul>
+  <li><a href="#técnicas-de-análise-para-as-variáveis-temporais" id="toc-técnicas-de-análise-para-as-variáveis-temporais" class="nav-link" data-scroll-target="#técnicas-de-análise-para-as-variáveis-temporais"><span class="header-section-number">2.4.1</span> Técnicas de Análise para as Variáveis Temporais</a></li>
+  <li><a href="#técnicas-de-análise-para-as-variáveis-de-localização" id="toc-técnicas-de-análise-para-as-variáveis-de-localização" class="nav-link" data-scroll-target="#técnicas-de-análise-para-as-variáveis-de-localização"><span class="header-section-number">2.4.2</span> Técnicas de Análise para as Variáveis de Localização</a></li>
+  <li><a href="#técnicas-de-análise-para-as-variáveis-de-condições-climáticas" id="toc-técnicas-de-análise-para-as-variáveis-de-condições-climáticas" class="nav-link" data-scroll-target="#técnicas-de-análise-para-as-variáveis-de-condições-climáticas"><span class="header-section-number">2.4.3</span> Técnicas de Análise para as Variáveis de Condições Climáticas</a></li>
+  <li><a href="#técnicas-de-análise-para-as-variáveis-de-sinalização-e-infraestrutura" id="toc-técnicas-de-análise-para-as-variáveis-de-sinalização-e-infraestrutura" class="nav-link" data-scroll-target="#técnicas-de-análise-para-as-variáveis-de-sinalização-e-infraestrutura"><span class="header-section-number">2.4.4</span> Técnicas de Análise para as Variáveis de Sinalização e Infraestrutura</a></li>
+  <li><a href="#técnicas-de-análise-para-as-variáveis-de-duração-do-acidente." id="toc-técnicas-de-análise-para-as-variáveis-de-duração-do-acidente." class="nav-link" data-scroll-target="#técnicas-de-análise-para-as-variáveis-de-duração-do-acidente."><span class="header-section-number">2.4.5</span> Técnicas de Análise para as Variáveis de Duração do acidente.</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#resultados-e-discussão" id="toc-resultados-e-discussão" class="nav-link" data-scroll-target="#resultados-e-discussão"><span class="header-section-number">3</span> Resultados e Discussão</a>
+  <ul>
+  <li><a href="#resultados-para-as-variáveis-temporais" id="toc-resultados-para-as-variáveis-temporais" class="nav-link" data-scroll-target="#resultados-para-as-variáveis-temporais"><span class="header-section-number">3.1</span> Resultados para as Variáveis Temporais</a></li>
+  <li><a href="#resultados-para-as-variáveis-de-localização" id="toc-resultados-para-as-variáveis-de-localização" class="nav-link" data-scroll-target="#resultados-para-as-variáveis-de-localização"><span class="header-section-number">3.2</span> Resultados para as Variáveis de Localização</a></li>
+  <li><a href="#resultados-para-as-variáveis-de-condições-climáticas" id="toc-resultados-para-as-variáveis-de-condições-climáticas" class="nav-link" data-scroll-target="#resultados-para-as-variáveis-de-condições-climáticas"><span class="header-section-number">3.3</span> Resultados para as Variáveis de Condições Climáticas</a></li>
+  <li><a href="#resultados-para-as-variáveis-de-sinalização-e-infraestrutura" id="toc-resultados-para-as-variáveis-de-sinalização-e-infraestrutura" class="nav-link" data-scroll-target="#resultados-para-as-variáveis-de-sinalização-e-infraestrutura"><span class="header-section-number">3.4</span> Resultados para as Variáveis de Sinalização e Infraestrutura</a></li>
+  <li><a href="#resultados-para-as-variáveis-de-duração-do-acidente" id="toc-resultados-para-as-variáveis-de-duração-do-acidente" class="nav-link" data-scroll-target="#resultados-para-as-variáveis-de-duração-do-acidente"><span class="header-section-number">3.5</span> Resultados para as Variáveis de Duração do acidente</a></li>
+  </ul></li>
+  <li><a href="#referências" id="toc-referências" class="nav-link" data-scroll-target="#referências"><span class="header-section-number">4</span> Referências</a></li>
+  </ul>
+<div class="quarto-alternate-formats"><h2>Outros formatos</h2><ul><li><a href="Relatorio.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></nav>
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Análise da base US accidents</h1>
+</div>
+
+
+<div class="quarto-title-meta-author">
+  <div class="quarto-title-meta-heading">Autores</div>
+  <div class="quarto-title-meta-heading">Afiliação</div>
+  
+    <div class="quarto-title-meta-contents">
+    <p class="author">Ana Beatriz da Silva Maques <a href="mailto:beatrizda@ufpr.br" class="quarto-title-author-email"><i class="bi bi-envelope"></i></a> </p>
+  </div>
+  <div class="quarto-title-meta-contents">
+        <p class="affiliation">
+            <a href="https://deisygysi.github.io/">
+            Universidade Federal do Paraná
+            </a>
+          </p>
+      </div>
+    <div class="quarto-title-meta-contents">
+    <p class="author">João Victor Pietchaki <a href="mailto:victorpietchaki@ufpr.br" class="quarto-title-author-email"><i class="bi bi-envelope"></i></a> </p>
+  </div>
+  <div class="quarto-title-meta-contents">
+      </div>
+    <div class="quarto-title-meta-contents">
+    <p class="author">Leonardo Eizo Sakai <a href="mailto:eizo.sakai@ufpr.br" class="quarto-title-author-email"><i class="bi bi-envelope"></i></a> </p>
+  </div>
+  <div class="quarto-title-meta-contents">
+      </div>
+    <div class="quarto-title-meta-contents">
+    <p class="author">Vitor Pignatari <a href="mailto:vitor.pignatari@ufpr.br" class="quarto-title-author-email"><i class="bi bi-envelope"></i></a> </p>
+  </div>
+  <div class="quarto-title-meta-contents">
+      </div>
+  </div>
+
+<div class="quarto-title-meta">
+
+      
+    <div>
+    <div class="quarto-title-meta-heading">Data de Publicação</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">15 de dezembro de 2024</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+<div>
+  <div class="abstract">
+    <div class="block-title">Resumo</div>
+    <p>A principal atividade de um estatístico e cientista de dados é a análise de dados, quaisquer sejam as complexidades envolvidas. Tal consiste em um estudo pormenorizado de um conjunto de informações a fim de gerar conhecimento, instigar curiosidade, produzir ideias, detectar padrões a partir do que antes não tinha significado nenhum. Este presente artigo publica um conjunto de análises estatísticas sobre a base de dados US Accidents. Foi elaborado por estudantes do curso de Bacharelado em Estatística e Ciência de Dados da UFPR para a disciplina “Elementos de Programação para Estatística”, a fim de que aprimorem suas habilidades como analistas. As análises foram feitas utilizando a linguagem de programação R. Com ela, dados foram manipulados, análises exploratórias e estatísticas realizadas, gráficos elaborados, este presente relatório feito, e o dashboard desenvolvido. Dessa forma, comunicaremos informações de 7 milhões de linhas de forma intuitiva e clara, evidenciando tendências e detectando padrões entre a ocorrência de acidentes e as variáveis que&nbsp;os&nbsp;acompanham.</p>
+  </div>
+</div>
+
+<div>
+  <div class="keywords">
+    <div class="block-title">Palavras-chave</div>
+    <p>Análise de Dados, R, Shiny, Estatística, UFPR</p>
+  </div>
+</div>
+
+</header>
+
+
+<section id="introdução" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="introdução"><span class="header-section-number">1</span> Introdução</h2>
+<p>A análise de dados é uma atividade central para estatísticos e cientistas de dados, permitindo transformar informações aparentemente desorganizadas em conhecimento útil, detectar padrões e gerar insights. Este artigo apresenta um conjunto de análises estatísticas sobre a base de dados US Accidents, elaborado por estudantes do curso de Bacharelado em Estatística e Ciência de Dados da UFPR para a disciplina “Elementos de Programação para Estatística”. As análises foram conduzidas utilizando a linguagem de programação R, abrangendo etapas de manipulação de dados, análise exploratória, construção de gráficos, desenvolvimento de um dashboard interativo em Shiny e a produção deste relatório técnico em formato de artigo científico. Com base nos 7 milhões de registros da base, foram identificadas tendências e padrões na ocorrência de acidentes e suas variáveis associadas, comunicados de maneira clara e intuitiva. Este trabalho visa aprimorar as habilidades analíticas dos estudantes e contribuir para a compreensão dos dados relacionados a acidentes nos Estados Unidos.</p>
+</section>
+<section id="materiais-e-métodos" class="level2" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="materiais-e-métodos"><span class="header-section-number">2</span> Materiais e Métodos</h2>
+<section id="fonte-de-dados" class="level3" data-number="2.1">
+<h3 data-number="2.1" class="anchored" data-anchor-id="fonte-de-dados"><span class="header-section-number">2.1</span> Fonte de Dados</h3>
+<p>Para este projeto, utilizamos o linguagem de programação R para analisar a base de dados US Accidents, a partir de um aplicativo Shiny para a criação de um dashboard interativo, permitindo tanto uma visão abrangente dos dados, quanto informações específicas sobre o comportamento das variáveis inter-relacionada e autonomamente. A base de dados pode ser encontrada em <a href="#0" class="uri">https://www.kaggle.com/datasets/sobhanmoosavi/us-accidents</a>, e foi coletada utilizando APIs de trânsito em tempo real, nos Estados Unidos entre os anos de 2016 e 2023 <span class="citation" data-cites="moosavi2019countrywidetrafficaccidentdataset">(<a href="#ref-moosavi2019countrywidetrafficaccidentdataset" role="doc-biblioref">Moosavi, Samavatian, Parthasarathy, &amp; Ramnath, 2019</a>)</span>, <span class="citation" data-cites="Moosavi_2019">(<a href="#ref-Moosavi_2019" role="doc-biblioref">Moosavi, Samavatian, Parthasarathy, Teodorescu, et al., 2019</a>)</span>.</p>
+</section>
+<section id="a-base-de-dados-us_accidents" class="level3" data-number="2.2">
+<h3 data-number="2.2" class="anchored" data-anchor-id="a-base-de-dados-us_accidents"><span class="header-section-number">2.2</span> A Base de Dados US_accidents</h3>
+<p>A base de dados consiste em 46 variáveis e aproximadamente 7,8 milhões de observações sobre acidentes de trânsito nos Estados Unidos entre fevereiro de 2016 e março de 2023, com informações sobre a severidade do acidente, posição geográfica, data e hora do ocorrido, descrição, endereço, condições climáticas, infraestrutura do local e condições de luminosidade no momento do ocorrido. O programa R foi utilizado com os pacotes tidyverse para a importação e limpeza dos dados e análise exploratória, ggplot para a criação de gráficos, leaflet para a criação de visualizações em mapas, e shiny para a criação do dashboard. Em conjunto com Shiny, foi utilizado o pacote bslibs, que usa versões mais atualizadas do Bootstrap, permitindo a criação de layouts mais modernos e flexíveis.</p>
+<p>A fim de começar a entender e analisar os acidentes nos EUA, iniciamos lendo o banco de dados <code>US_Accidents_March23.csv</code>. Os dados foram coletados por Sobhan Moosavi entre 01/01/2016 e 04/01/2023. Para otimizar o tempo de carregamento, salvamos o arquivo original dos dados em um de extensão <code>.Rdata</code>.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Código</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="co"># Carrega os dados originais</span></span>
+<span id="cb1-2"><a href="#cb1-2"></a><span class="co"># load("../../99_dados/acidentes_US.RData")</span></span>
+<span id="cb1-3"><a href="#cb1-3"></a><span class="fu">load</span>(<span class="st">"../../99_dados/acidentes_US_sample.RData"</span>)</span>
+<span id="cb1-4"><a href="#cb1-4"></a><span class="co"># load("../../99_dados/acidentes_US_date.RData")</span></span>
+<span id="cb1-5"><a href="#cb1-5"></a><span class="fu">load</span>(<span class="st">"../../99_dados/acidentes_US_date_sample.RData"</span>)</span>
+<span id="cb1-6"><a href="#cb1-6"></a><span class="fu">st_read</span>(<span class="st">"../../99_dados/Estados_US/tl_2024_us_state.shp"</span>)</span>
+<span id="cb1-7"><a href="#cb1-7"></a>acidentes_US_sample <span class="sc">%&gt;%</span> <span class="fu">class</span>()</span></code><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>A fim de começarmos a entender esse conjunto de dados, vamos verificar a estrutura dos elementos presentes no objeto <code>acidentes_US</code>.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Código</summary>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a>acidentes_US_sample <span class="sc">%&gt;%</span> <span class="fu">glimpse</span>()</span></code><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>O conjunto de dados dispõe de 7728394 observações e 46 variáveis. Cada coluna é uma variável que descreve um aspecto do acidente, ao passo que cada linha corresponde única e exclusivamente a uma observação de acidente.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Código</summary>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a>acidentes_US_sample <span class="sc">%&gt;%</span> <span class="fu">head</span>(<span class="dv">10</span>)</span></code><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<section id="grupo_variaveis" class="level4" data-number="2.2.1">
+<h4 data-number="2.2.1" class="anchored" data-anchor-id="grupo_variaveis"><span class="header-section-number">2.2.1</span> Grupos de Variáveis</h4>
+<p>Olhando em um primeiro momento, todas essas informações nos confundem. Para contornar esse problema, identificamos grupos de variáveis que podem ser analisadas em conjunto e excluímos outras que observamos não contribuir significativamente.</p>
+<blockquote class="blockquote">
+<p>Escolhemos não trabalhar com as colunas <code>ID</code>, <code>Source</code>, <code>Timzone</code>, <code>Airport_code</code>, <code>Weather_Timestamp</code>, <code>Sunrise_Sunset</code>, <code>Nautical_Twilight</code>, <code>Astronomical_Twilight</code>, <code>zipcode</code>, <code>End_Lat</code>,<code>End_Lng</code>, <code>Street</code>, <code>County</code>, <code>Wind_Direction</code>, <code>Weather_Timestamp</code>, <code>Description</code>.</p>
+</blockquote>
+<p>Para otimizar nossas análises, então, definimos 5 grandes grupos de variáveis: tempo, localização, condições climáticas, condições de infraestrutura e sinalização, descrição humana do acidente.</p>
+<p>A coluna de <code>severity</code> não foi agrupada e será analisada interconjuntamente.</p>
+<p>As variáveis que compõem cada grupo são:</p>
+<ul>
+<li>Tempo:
+<ul>
+<li><code>Start_Time</code>, <code>End_Time</code>, <code>Civil_Twilight</code>;</li>
+</ul></li>
+<li>Localização:
+<ul>
+<li><code>Start_Lat</code>,<code>Start_Lng</code>, <code>End_Lat</code>, <code>End_Lng</code>, <code>Distance(mi)</code>, <code>Street</code>, <code>City</code>, <code>County</code>, <code>State</code>, <code>Zipcode</code>, <code>Country</code>;</li>
+</ul></li>
+<li>Condiçoes Climaticas:
+<ul>
+<li><code>Temperature(F)</code>, <code>Wind_Chill(F)</code>, <code>Humidity(%)</code>, <code>Pressure(in)</code>, <code>Visibility(mi)</code>, <code>Wind_Speed(mph)</code>, <code>Precipitation(in)</code>, <code>Weather_Condition</code>;</li>
+</ul></li>
+<li>Condiçoes de Infraestrutura e Sinalizaçao:
+<ul>
+<li><code>Bump</code>, <code>Crossing</code>, <code>Give_Way</code>, <code>Junction</code>, <code>No_Exit</code>, <code>Railway</code>, <code>Roundabout</code>, <code>Station</code>, <code>Stop</code>, <code>Traffic_Calming</code>, <code>Traffic_Signal</code>, <code>Turning_Loop</code>; …</li>
+</ul></li>
+<li>Descrição Humana do Acidente:
+<ul>
+<li><code>Description</code>.</li>
+</ul></li>
+</ul>
+</section>
+</section>
+<section id="manipulação-de-dados" class="level3" data-number="2.3">
+<h3 data-number="2.3" class="anchored" data-anchor-id="manipulação-de-dados"><span class="header-section-number">2.3</span> Manipulação de dados</h3>
+<p>Definimos que cada uma das cinco abas seria de cada um dos grupos de variáveis. Para isso, tivemos de fazer um pré-processamento dos dados para:</p>
+<ul>
+<li>otimizar o tempo de processamento de scripts;</li>
+<li>filtrar colunas que não seriam utilizadas;</li>
+<li>tratar valores faltantes;</li>
+<li>transformar variáveis para formatos mais adequados;</li>
+<li>criar novas variáveis;</li>
+<li>sumarizar os dados.</li>
+</ul>
+<section id="pré-processando-as-variáveis-do-grupo-tempo" class="level4" data-number="2.3.1">
+<h4 data-number="2.3.1" class="anchored" data-anchor-id="pré-processando-as-variáveis-do-grupo-tempo"><span class="header-section-number">2.3.1</span> Pré-processando as <a href="#grupo_variaveis">variáveis do grupo</a> ‘Tempo’</h4>
+<p>O primeiro passo foi filtar as colunas que fazem parte do grupo ‘Tempo’ e criar uma nova tabela com essas variáveis.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Código</summary>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a><span class="co"># Seleciona as variaveis de 'Tempo'</span></span>
+<span id="cb4-2"><a href="#cb4-2"></a>acidentes_US_date <span class="ot">&lt;-</span> acidentes_US_sample[, .(ID, Severity, Start_Time, End_Time, Civil_Twilight)]</span>
+<span id="cb4-3"><a href="#cb4-3"></a></span>
+<span id="cb4-4"><a href="#cb4-4"></a>acidentes_US_date <span class="ot">&lt;-</span> acidentes_US_sample[, <span class="st">`</span><span class="at">:=</span><span class="st">`</span>(<span class="at">Start_Time =</span> Start_Time,</span>
+<span id="cb4-5"><a href="#cb4-5"></a>                                                <span class="at">End_Time =</span> End_Time,</span>
+<span id="cb4-6"><a href="#cb4-6"></a>                                                <span class="at">Civil_Twilight =</span> Civil_Twilight)]</span>
+<span id="cb4-7"><a href="#cb4-7"></a></span>
+<span id="cb4-8"><a href="#cb4-8"></a>acidentes_US_date <span class="ot">&lt;-</span> acidentes_US_date[, .(ID, Severity, Start_Time, End_Time, Civil_Twilight)]</span></code><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Com apenas as colunas de interesse, a tabela <code>acidentes_US_date</code> foi criada. A partir dela, criamos novas variáveis para enriquecer a análise dos dados.</p>
+<p>Esse data.table <code>acidentes_US_date</code> foi salvo em um arquivo <code>. RData</code> para ser utilizado posteriormente. Ele será a tabela base para todas as análises e gráficos realizados para o grupo ‘Tempo’.</p>
+</section>
+<section id="pré-processando-as-variáveis-do-grupo-posição-geográfica" class="level4" data-number="2.3.2">
+<h4 data-number="2.3.2" class="anchored" data-anchor-id="pré-processando-as-variáveis-do-grupo-posição-geográfica"><span class="header-section-number">2.3.2</span> Pré-Processando as <a href="#grupo_variaveis">variáveis do grupo</a> posição geográfica</h4>
+<p>Para a visualização com o mapa, foi consultada uma base externa no <a href="https://www.census.gov/geographies/mapping-files/time-series/geo/carto-boundary-file.html">site</a>, sobre os <em>shapefiles</em> dos estados. Assim, tendo os limites dos estados, foi possível criar uma paleta de cores de acordo com os valores da quantidade de acidentes que cada estado teve.</p>
+<p>Para a plotagem do mapa de calor na visualização geográfica, foi calculada a localização aproximada do acidente, arredondando a latitude e longitude para que a rfenderização do código fosse mais rápida.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Código</summary>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a><span class="co"># Alterando o nome, para não ter que alterar todas as variáveis após</span></span>
+<span id="cb5-2"><a href="#cb5-2"></a>acidentes_arredondado <span class="ot">&lt;-</span> acidentes_US_sample</span>
+<span id="cb5-3"><a href="#cb5-3"></a></span>
+<span id="cb5-4"><a href="#cb5-4"></a><span class="co"># Shapefiles </span></span>
+<span id="cb5-5"><a href="#cb5-5"></a>estados <span class="ot">&lt;-</span> <span class="fu">st_read</span>(<span class="st">"../../99_dados/Estados_US/tl_2024_us_state.shp"</span>)</span>
+<span id="cb5-6"><a href="#cb5-6"></a></span>
+<span id="cb5-7"><a href="#cb5-7"></a><span class="co"># Arredondando latitudes e longitudes</span></span>
+<span id="cb5-8"><a href="#cb5-8"></a>acidentes_arredondado<span class="sc">$</span>Start_Lat <span class="ot">&lt;-</span> <span class="fu">round</span>(acidentes_arredondado<span class="sc">$</span>Start_Lat,<span class="dv">2</span>)</span>
+<span id="cb5-9"><a href="#cb5-9"></a>acidentes_arredondado<span class="sc">$</span>Start_Lng <span class="ot">&lt;-</span> <span class="fu">round</span>(acidentes_arredondado<span class="sc">$</span>Start_Lng,<span class="dv">2</span>)</span>
+<span id="cb5-10"><a href="#cb5-10"></a></span>
+<span id="cb5-11"><a href="#cb5-11"></a><span class="co"># Alterando a base shp para facilitar o entendimento</span></span>
+<span id="cb5-12"><a href="#cb5-12"></a>nomeestados <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(estados) <span class="sc">%&gt;%</span> <span class="fu">select</span>(STUSPS,NAME)</span>
+<span id="cb5-13"><a href="#cb5-13"></a><span class="fu">names</span>(nomeestados) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"STUSPS"</span>,<span class="st">"NOMEESTADO"</span>)</span>
+<span id="cb5-14"><a href="#cb5-14"></a></span>
+<span id="cb5-15"><a href="#cb5-15"></a><span class="co"># Juntando as informações já tratadas</span></span>
+<span id="cb5-16"><a href="#cb5-16"></a>acidentes <span class="ot">&lt;-</span> <span class="fu">left_join</span>(acidentes_arredondado,nomeestados, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"State"</span><span class="ot">=</span><span class="st">"STUSPS"</span>))</span>
+<span id="cb5-17"><a href="#cb5-17"></a></span>
+<span id="cb5-18"><a href="#cb5-18"></a>acidentes_p_estado <span class="ot">&lt;-</span> acidentes <span class="sc">%&gt;%</span> </span>
+<span id="cb5-19"><a href="#cb5-19"></a>  <span class="fu">group_by</span>(State, NOMEESTADO) <span class="sc">%&gt;%</span> </span>
+<span id="cb5-20"><a href="#cb5-20"></a>  <span class="fu">summarise</span>(<span class="at">n =</span> <span class="fu">n</span>(), <span class="at">.groups =</span> <span class="st">"drop"</span>)</span>
+<span id="cb5-21"><a href="#cb5-21"></a></span>
+<span id="cb5-22"><a href="#cb5-22"></a></span>
+<span id="cb5-23"><a href="#cb5-23"></a><span class="co"># Juntando com a geometria dos estados</span></span>
+<span id="cb5-24"><a href="#cb5-24"></a>acidentes_p_estado <span class="ot">&lt;-</span> <span class="fu">left_join</span>(acidentes_p_estado, estados, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"State"</span> <span class="ot">=</span> <span class="st">"STUSPS"</span>))</span>
+<span id="cb5-25"><a href="#cb5-25"></a>acidentes_p_estado <span class="ot">&lt;-</span> <span class="fu">st_as_sf</span>(acidentes_p_estado)</span>
+<span id="cb5-26"><a href="#cb5-26"></a></span>
+<span id="cb5-27"><a href="#cb5-27"></a><span class="co"># Substituindo NA por 0 para estados sem acidentes</span></span>
+<span id="cb5-28"><a href="#cb5-28"></a>acidentes_p_estado<span class="sc">$</span>n[<span class="fu">is.na</span>(acidentes_p_estado<span class="sc">$</span>n)] <span class="ot">&lt;-</span> <span class="dv">0</span></span>
+<span id="cb5-29"><a href="#cb5-29"></a></span>
+<span id="cb5-30"><a href="#cb5-30"></a>mapa_de_calor <span class="ot">&lt;-</span> acidentes <span class="sc">%&gt;%</span></span>
+<span id="cb5-31"><a href="#cb5-31"></a>  <span class="fu">group_by</span>(Start_Lat, Start_Lng) <span class="sc">%&gt;%</span></span>
+<span id="cb5-32"><a href="#cb5-32"></a>  <span class="fu">summarise</span>(<span class="at">n =</span> <span class="fu">n</span>(), <span class="at">.groups =</span> <span class="st">"drop"</span>)</span>
+<span id="cb5-33"><a href="#cb5-33"></a></span>
+<span id="cb5-34"><a href="#cb5-34"></a>cores <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"white"</span>, <span class="st">"red"</span>, <span class="st">"darkred"</span>)</span>
+<span id="cb5-35"><a href="#cb5-35"></a>palestado <span class="ot">&lt;-</span> <span class="fu">colorNumeric</span>(<span class="at">palette =</span> cores, <span class="at">domain =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fu">max</span>(acidentes_p_estado<span class="sc">$</span>n, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)))</span></code><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+<section id="pré-processando-as-variáveis-do-grupo-condições-climáticas" class="level4" data-number="2.3.3">
+<h4 data-number="2.3.3" class="anchored" data-anchor-id="pré-processando-as-variáveis-do-grupo-condições-climáticas"><span class="header-section-number">2.3.3</span> Pré-processando as <a href="#grupo_variaveis">variáveis do grupo</a> ‘Condições Climáticas’</h4>
+<p>A variável ‘Weather Condition’ possuía muitos possíveis valores, o que a deixava difícil analisar. O primeiro passo foi agrupar os valores parecidos.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Código</summary>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a><span class="co">#Agrupando valores parecidos em 'Weather Condition'.</span></span>
+<span id="cb6-2"><a href="#cb6-2"></a></span>
+<span id="cb6-3"><a href="#cb6-3"></a>acidentes_US_sample <span class="ot">&lt;-</span> acidentes_US_sample <span class="sc">%&gt;%</span></span>
+<span id="cb6-4"><a href="#cb6-4"></a>  <span class="fu">mutate</span>(<span class="at">Weather_Cluster =</span> <span class="fu">case_when</span>(</span>
+<span id="cb6-5"><a href="#cb6-5"></a>    <span class="fu">grepl</span>(<span class="st">"Rain|Drizzle|Shower|Showers|Light Rain|Heavy Rain|Rain Showers|Light Rain Showers|Rain and Sleet|Rain Shower|Rain / Windy|Rain Showers"</span>, Weather_Condition, <span class="at">ignore.case =</span> <span class="cn">TRUE</span>) <span class="sc">~</span> <span class="st">"Rain"</span>,</span>
+<span id="cb6-6"><a href="#cb6-6"></a>    <span class="fu">grepl</span>(<span class="st">"Snow|Blowing Snow|Light Snow|Heavy Snow|Snow Grains|Snow Showers|Snow and Thunder|Snow / Windy|Blowing Snow / Windy|Light Snow Shower|Heavy Snow / Windy|Heavy Snow with Thunder|Snow and Sleet"</span>, Weather_Condition, <span class="at">ignore.case =</span> <span class="cn">TRUE</span>) <span class="sc">~</span> <span class="st">"Snow"</span>,</span>
+<span id="cb6-7"><a href="#cb6-7"></a>    <span class="fu">grepl</span>(<span class="st">"Thunder|Tornado|Thunderstorm|Light Thunderstorm|Heavy Thunderstorms and Rain|Thunder / Windy|Thunder / Wintry Mix|Thunderstorms and Snow|Light Thunderstorms and Snow|Heavy Thunderstorms with Small Hail"</span>, Weather_Condition, <span class="at">ignore.case =</span> <span class="cn">TRUE</span>) <span class="sc">~</span> <span class="st">"Thunderstorm"</span>,</span>
+<span id="cb6-8"><a href="#cb6-8"></a>    <span class="fu">grepl</span>(<span class="st">"Wind|Windy|Blowing Dust|Blowing Snow|Duststorm|Dust Whirls|Blowing Dust / Windy|Widespread Dust|Sand / Windy|Windy"</span>, Weather_Condition, <span class="at">ignore.case =</span> <span class="cn">TRUE</span>) <span class="sc">~</span> <span class="st">"Wind"</span>,</span>
+<span id="cb6-9"><a href="#cb6-9"></a>    <span class="fu">grepl</span>(<span class="st">"Fog|Haze|Shallow Fog|Patches of Fog|Mist|Light Fog|Fog / Windy|Partial Fog"</span>, Weather_Condition, <span class="at">ignore.case =</span> <span class="cn">TRUE</span>) <span class="sc">~</span> <span class="st">"Fog"</span>,</span>
+<span id="cb6-10"><a href="#cb6-10"></a>    <span class="fu">grepl</span>(<span class="st">"Clear|Fair|Mostly Cloudy|Partly Cloudy|Overcast|Cloudy"</span>, Weather_Condition, <span class="at">ignore.case =</span> <span class="cn">TRUE</span>) <span class="sc">~</span> <span class="st">"Clear"</span>,</span>
+<span id="cb6-11"><a href="#cb6-11"></a>    <span class="fu">grepl</span>(<span class="st">"Smoke|Volcanic Ash|Haze"</span>, Weather_Condition, <span class="at">ignore.case =</span> <span class="cn">TRUE</span>) <span class="sc">~</span> <span class="st">"Hazardous"</span>, </span>
+<span id="cb6-12"><a href="#cb6-12"></a>    <span class="fu">grepl</span>(<span class="st">"Sleet|Ice Pellets|Freezing Rain|Light Freezing Rain|Freezing Drizzle|Light Freezing Drizzle|Heavy Freezing Rain"</span>, Weather_Condition, <span class="at">ignore.case =</span> <span class="cn">TRUE</span>) <span class="sc">~</span> <span class="st">"Ice"</span>,</span>
+<span id="cb6-13"><a href="#cb6-13"></a>    <span class="fu">grepl</span>(<span class="st">"Squalls|Hail|Small Hail|Thunder / Wintry Mix|Hail"</span>, Weather_Condition, <span class="at">ignore.case =</span> <span class="cn">TRUE</span>) <span class="sc">~</span> <span class="st">"Hail"</span>,</span>
+<span id="cb6-14"><a href="#cb6-14"></a>    <span class="fu">grepl</span>(<span class="st">"Mist|Blowing Snow Nearby|Sand|Blowing Snow"</span>, Weather_Condition, <span class="at">ignore.case =</span> <span class="cn">TRUE</span>) <span class="sc">~</span> <span class="st">"Dust &amp; Mist"</span>,</span>
+<span id="cb6-15"><a href="#cb6-15"></a>    <span class="fu">grepl</span>(<span class="st">"Volcanic Ash|Blowing Sand|Sand"</span>, Weather_Condition, <span class="at">ignore.case =</span> <span class="cn">TRUE</span>) <span class="sc">~</span> <span class="st">"Dust Storm"</span>,</span>
+<span id="cb6-16"><a href="#cb6-16"></a>    <span class="fu">grepl</span>(<span class="st">"Fair / Windy|Fair"</span>, Weather_Condition, <span class="at">ignore.case =</span> <span class="cn">TRUE</span>) <span class="sc">~</span> <span class="st">"Fair / Windy"</span>,</span>
+<span id="cb6-17"><a href="#cb6-17"></a>    <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"Other"</span> </span>
+<span id="cb6-18"><a href="#cb6-18"></a>  ))</span></code><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Depois, foi criada uma nova variável para identificar se choveu choveu ou não.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Código</summary>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a>acidentes_US_sample <span class="ot">&lt;-</span> acidentes_US_sample <span class="sc">%&gt;%</span></span>
+<span id="cb7-2"><a href="#cb7-2"></a>  <span class="fu">mutate</span>(<span class="at">Choveu =</span> <span class="fu">ifelse</span>(<span class="st">`</span><span class="at">Precipitation(in)</span><span class="st">`</span> <span class="sc">&gt;</span> <span class="dv">0</span>, <span class="st">"Sim"</span>, <span class="st">"Não"</span>))</span></code><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+<section id="pré-processando-as-variáveis-do-grupo-condiçoes-de-infraestrutura-e-sinalizaçao" class="level4" data-number="2.3.4">
+<h4 data-number="2.3.4" class="anchored" data-anchor-id="pré-processando-as-variáveis-do-grupo-condiçoes-de-infraestrutura-e-sinalizaçao"><span class="header-section-number">2.3.4</span> Pré-processando as <a href="#grupo_variaveis">variáveis do grupo</a> ‘Condiçoes de Infraestrutura e Sinalizaçao’</h4>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Código</summary>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a><span class="co"># Seleciona as variáveis de interesse</span></span>
+<span id="cb8-2"><a href="#cb8-2"></a>poi <span class="ot">&lt;-</span> acidentes_US_sample[, .(Severity, Start_Time, City, State, <span class="st">`</span><span class="at">Temperature(F)</span><span class="st">`</span>,</span>
+<span id="cb8-3"><a href="#cb8-3"></a>                         Amenity, Bump, Crossing, Give_Way, Junction, No_Exit,</span>
+<span id="cb8-4"><a href="#cb8-4"></a>                         Railway, Roundabout, Station, Stop, Traffic_Calming,</span>
+<span id="cb8-5"><a href="#cb8-5"></a>                         Traffic_Signal, Turning_Loop)]</span>
+<span id="cb8-6"><a href="#cb8-6"></a></span>
+<span id="cb8-7"><a href="#cb8-7"></a><span class="co"># Cria duas seleções de dados, contando a quantidade de acidentes com e sem cada ponto de interesse.</span></span>
+<span id="cb8-8"><a href="#cb8-8"></a></span>
+<span id="cb8-9"><a href="#cb8-9"></a>poi_true <span class="ot">&lt;-</span> poi <span class="sc">%&gt;%</span> </span>
+<span id="cb8-10"><a href="#cb8-10"></a>  <span class="fu">select</span>(Amenity<span class="sc">:</span>Turning_Loop) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-11"><a href="#cb8-11"></a>  <span class="fu">pivot_longer</span>(Amenity<span class="sc">:</span>Turning_Loop, <span class="at">names_to =</span> <span class="st">"PoI"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-12"><a href="#cb8-12"></a>  <span class="fu">filter</span>(value <span class="sc">==</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb8-13"><a href="#cb8-13"></a>  <span class="fu">group_by</span>(PoI) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-14"><a href="#cb8-14"></a>  <span class="fu">summarise</span>(<span class="at">t =</span> <span class="fu">n</span>()) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-15"><a href="#cb8-15"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(t))</span>
+<span id="cb8-16"><a href="#cb8-16"></a></span>
+<span id="cb8-17"><a href="#cb8-17"></a>poi_false <span class="ot">&lt;-</span> poi <span class="sc">%&gt;%</span> </span>
+<span id="cb8-18"><a href="#cb8-18"></a>  <span class="fu">select</span>(Amenity<span class="sc">:</span>Turning_Loop) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-19"><a href="#cb8-19"></a>  <span class="fu">pivot_longer</span>(Amenity<span class="sc">:</span>Turning_Loop, <span class="at">names_to =</span> <span class="st">"PoI"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-20"><a href="#cb8-20"></a>  <span class="fu">filter</span>(value <span class="sc">==</span> <span class="cn">FALSE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb8-21"><a href="#cb8-21"></a>  <span class="fu">group_by</span>(PoI) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-22"><a href="#cb8-22"></a>  <span class="fu">summarise</span>(<span class="at">f =</span> <span class="fu">n</span>()) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-23"><a href="#cb8-23"></a>  <span class="fu">arrange</span>(f)</span>
+<span id="cb8-24"><a href="#cb8-24"></a></span>
+<span id="cb8-25"><a href="#cb8-25"></a><span class="co"># Cria uma nova coluna com a soma dos pontos de interesse</span></span>
+<span id="cb8-26"><a href="#cb8-26"></a>poi_sum <span class="ot">&lt;-</span> poi[, PoI_Sum <span class="sc">:</span><span class="er">=</span> <span class="fu">rowSums</span>(.SD), .SDcols <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"Amenity"</span>, <span class="st">"Bump"</span>,<span class="st">"Crossing"</span>, <span class="st">"Give_Way"</span>, <span class="st">"Junction"</span>, <span class="st">"No_Exit"</span>, <span class="st">"Railway"</span>, <span class="st">"Roundabout"</span>, <span class="st">"Station"</span>,</span>
+<span id="cb8-27"><a href="#cb8-27"></a>                                                        <span class="st">"Stop"</span>, <span class="st">"Traffic_Calming"</span>,</span>
+<span id="cb8-28"><a href="#cb8-28"></a>                                                        <span class="st">"Traffic_Signal"</span>, <span class="st">"Turning_Loop"</span>)]</span></code><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+<section id="pré-processando-as-variáveis-do-grupo-duração-do-acidente." class="level4" data-number="2.3.5">
+<h4 data-number="2.3.5" class="anchored" data-anchor-id="pré-processando-as-variáveis-do-grupo-duração-do-acidente."><span class="header-section-number">2.3.5</span> Pré-processando as <a href="#grupo_variaveis">variáveis do grupo</a> “Duração do acidente”.</h4>
+<p>Primeiramente, foi preciso criar uma nova variável chamada “Duration_minutes” e calcular a duração do acidente em minutos à partir das duas variáveis: Start Date e End Date.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Código</summary>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a>acidentes_US_sample <span class="ot">&lt;-</span> acidentes_US_sample <span class="sc">%&gt;%</span></span>
+<span id="cb9-2"><a href="#cb9-2"></a>  <span class="fu">mutate</span>(<span class="at">Duration_minutes =</span> <span class="fu">as.numeric</span>(<span class="fu">difftime</span>(End_Time, Start_Time, <span class="at">units =</span> <span class="st">"mins"</span>)))</span></code><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+</section>
+<section id="técnicas-estatísticas-aplicadas" class="level3" data-number="2.4">
+<h3 data-number="2.4" class="anchored" data-anchor-id="técnicas-estatísticas-aplicadas"><span class="header-section-number">2.4</span> Técnicas Estatísticas Aplicadas</h3>
+<p>Como nossas análises foram baseadas em grupos de variáveis que compartilham contextos específicos, as técnicas estatísticas utilizadas variaram de uma para a outra de acordo com os respectivos objetivos.</p>
+<section id="técnicas-de-análise-para-as-variáveis-temporais" class="level4" data-number="2.4.1">
+<h4 data-number="2.4.1" class="anchored" data-anchor-id="técnicas-de-análise-para-as-variáveis-temporais"><span class="header-section-number">2.4.1</span> Técnicas de Análise para as <a href="#grupo_variaveis">Variáveis</a> Temporais</h4>
+<p>Para as variáveis temporais, foram considerados os diferentes níveis de granularidade das informações, como ano, mês, dia, hora, dia da semana e faixa de horário. A análise foi feita com base numa análise exploratória de dados, estatística descritiva, análise de dados categóricos, visualização de dados aplicada.</p>
+<p>Um dos objetivos foi analisar a distribuição das frequências de acidentes entre os diferentes níveis de granularidade de tempo (ano, mês, mês-dia, dia), e verificar se existem padrões sazonais. Para isso, foram utilizados gráficos de barras e de pontos, bem como tabelas de frequência que foram geradas com o auxílio dos pacotes <code>tidyverse</code> e <code>ggplot2</code>.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Código</summary>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a>acidentes_ano_barplot <span class="ot">&lt;-</span> acidentes_US_sample_date[Civil_Twilight <span class="sc">==</span> <span class="st">"Day"</span> <span class="sc">|</span> Civil_Twilight <span class="sc">==</span> <span class="st">"Night"</span>,</span>
+<span id="cb10-2"><a href="#cb10-2"></a>                                            .(.N,</span>
+<span id="cb10-3"><a href="#cb10-3"></a>                                              <span class="at">Distinct_date =</span> <span class="fu">uniqueN</span>(Date),</span>
+<span id="cb10-4"><a href="#cb10-4"></a>                                              <span class="at">Media_diaria =</span> <span class="fu">round</span>(.N<span class="sc">/</span><span class="fu">uniqueN</span>(Date),<span class="dv">0</span>)),</span>
+<span id="cb10-5"><a href="#cb10-5"></a>                                            by <span class="ot">=</span> Year][</span>
+<span id="cb10-6"><a href="#cb10-6"></a>                                              <span class="fu">order</span>(Year)][</span>
+<span id="cb10-7"><a href="#cb10-7"></a>                                                , Percent_variation <span class="sc">:</span><span class="er">=</span> <span class="fu">round</span>((Media_diaria <span class="sc">-</span> <span class="fu">shift</span>(Media_diaria))<span class="sc">/</span><span class="fu">shift</span>(Media_diaria), <span class="dv">2</span>)] <span class="sc">%&gt;%</span> </span>
+<span id="cb10-8"><a href="#cb10-8"></a>  <span class="fu">setorder</span>(Year) <span class="sc">%&gt;%</span> <span class="co"># order data set increasingly by year</span></span>
+<span id="cb10-9"><a href="#cb10-9"></a>  <span class="fu">as.data.frame</span>() <span class="sc">%&gt;%</span> <span class="co"># Transforming data.table into data.frame</span></span>
+<span id="cb10-10"><a href="#cb10-10"></a>  <span class="fu">ggplot</span>() <span class="sc">+</span> </span>
+<span id="cb10-11"><a href="#cb10-11"></a>  <span class="fu">aes</span>(<span class="at">x =</span> Year, <span class="at">y =</span> N,</span>
+<span id="cb10-12"><a href="#cb10-12"></a>      <span class="at">text =</span> <span class="fu">paste</span>(<span class="st">"Ano:"</span>, Year,</span>
+<span id="cb10-13"><a href="#cb10-13"></a>                   <span class="st">"&lt;br&gt;Qtd. Acidentes:"</span>, <span class="fu">round</span>(N<span class="sc">/</span><span class="dv">1000</span>, <span class="dv">1</span>), <span class="st">"k"</span>,</span>
+<span id="cb10-14"><a href="#cb10-14"></a>                   <span class="st">"&lt;br&gt;Disa Obs. no Ano:"</span>, Distinct_date,</span>
+<span id="cb10-15"><a href="#cb10-15"></a>                   <span class="st">"&lt;br&gt;Acidentes por Dia:"</span>, <span class="fu">round</span>(Media_diaria<span class="sc">/</span><span class="dv">1000</span>, <span class="dv">1</span>), <span class="st">"k"</span>)) <span class="sc">+</span> </span>
+<span id="cb10-16"><a href="#cb10-16"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">"identity"</span>, <span class="at">fill =</span> <span class="st">"darkred"</span>) <span class="sc">+</span> </span>
+<span id="cb10-17"><a href="#cb10-17"></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">percent</span>(Percent_variation)), <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span> </span>
+<span id="cb10-18"><a href="#cb10-18"></a>  <span class="fu">scale_y_continuous</span>(</span>
+<span id="cb10-19"><a href="#cb10-19"></a>    <span class="at">labels =</span> <span class="fu">label_number</span>(<span class="at">scale =</span> <span class="dv">1</span><span class="sc">/</span><span class="dv">1000</span>, <span class="at">suffix =</span> <span class="st">"k"</span>) <span class="co"># Divide por 1000 e adiciona o sufixo "k"</span></span>
+<span id="cb10-20"><a href="#cb10-20"></a>  ) <span class="sc">+</span></span>
+<span id="cb10-21"><a href="#cb10-21"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Qtd. de Acidentes por Ano"</span>, <span class="at">x =</span> <span class="st">"Ano"</span>, <span class="at">y =</span> <span class="st">"Qtd. Acidentes"</span>) <span class="sc">+</span></span>
+<span id="cb10-22"><a href="#cb10-22"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span> </span>
+<span id="cb10-23"><a href="#cb10-23"></a>  <span class="fu">theme</span>(<span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>)) <span class="sc">+</span> </span>
+<span id="cb10-24"><a href="#cb10-24"></a>  <span class="fu">plotly</span>()</span>
+<span id="cb10-25"><a href="#cb10-25"></a>acidentes_ano_barplot <span class="sc">%&gt;%</span> <span class="fu">ggplotly</span>(<span class="at">tooltip =</span> <span class="st">"text"</span>)</span></code><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Juntamente, para acrescentar mais informações à análise, foi feita uma sumarização dessas distribuições de frequências de acidentes por crepúsculo civil, a fim de verificar se existe uma relação entre a quantidade de acidentes e a luminosidade do dia.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Código</summary>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a>acidentes_ano_barplot_CT <span class="ot">&lt;-</span> acidentes_US_sample_date[Civil_Twilight <span class="sc">==</span> <span class="st">"Day"</span> <span class="sc">|</span> Civil_Twilight <span class="sc">==</span> <span class="st">"Night"</span>, .N, by <span class="ot">=</span> .(Year, Civil_Twilight)][</span>
+<span id="cb11-2"><a href="#cb11-2"></a>  , N_year <span class="sc">:</span><span class="er">=</span> <span class="fu">sum</span>(N), by <span class="ot">=</span> Year][</span>
+<span id="cb11-3"><a href="#cb11-3"></a>    , Percent <span class="sc">:</span><span class="er">=</span> <span class="fu">round</span>((N<span class="sc">/</span>N_year), <span class="dv">2</span>)] <span class="sc">%&gt;%</span> </span>
+<span id="cb11-4"><a href="#cb11-4"></a>  <span class="fu">setorder</span>(Year, Civil_Twilight) <span class="sc">%&gt;%</span> <span class="co"># order data set increasingly by year</span></span>
+<span id="cb11-5"><a href="#cb11-5"></a>  <span class="fu">as.data.frame</span>() <span class="sc">%&gt;%</span> <span class="co"># Transforming data.table into data.frame</span></span>
+<span id="cb11-6"><a href="#cb11-6"></a>  <span class="fu">ggplot</span>() <span class="sc">+</span> </span>
+<span id="cb11-7"><a href="#cb11-7"></a>  <span class="fu">aes</span>(<span class="at">x =</span> Year, <span class="at">y =</span> N,</span>
+<span id="cb11-8"><a href="#cb11-8"></a>      <span class="at">text =</span> <span class="fu">paste</span>(<span class="st">"Ano:"</span>, Year,</span>
+<span id="cb11-9"><a href="#cb11-9"></a>                   <span class="st">"&lt;br&gt;Qtd. Acidentes:"</span>, <span class="fu">round</span>(N<span class="sc">/</span><span class="dv">1000</span>, <span class="dv">1</span>), <span class="st">"k"</span>,</span>
+<span id="cb11-10"><a href="#cb11-10"></a>                   <span class="st">"&lt;br&gt;% Total Acidentes:"</span>, <span class="fu">round</span>(<span class="dv">100</span><span class="sc">*</span>Percent, <span class="dv">0</span>), <span class="st">"%"</span>)) <span class="sc">+</span> </span>
+<span id="cb11-11"><a href="#cb11-11"></a>  <span class="fu">geom_bar</span>(<span class="fu">aes</span>(<span class="at">fill =</span> Civil_Twilight), <span class="at">stat =</span> <span class="st">"identity"</span>) <span class="sc">+</span></span>
+<span id="cb11-12"><a href="#cb11-12"></a>  <span class="fu">scale_y_continuous</span>(</span>
+<span id="cb11-13"><a href="#cb11-13"></a>    <span class="at">labels =</span> <span class="fu">label_number</span>(<span class="at">scale =</span> <span class="dv">1</span><span class="sc">/</span><span class="dv">1000</span>, <span class="at">suffix =</span> <span class="st">"k"</span>) <span class="co"># Divide por 1000 e adiciona o sufixo "k"</span></span>
+<span id="cb11-14"><a href="#cb11-14"></a>  ) <span class="sc">+</span></span>
+<span id="cb11-15"><a href="#cb11-15"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">'Day'</span> <span class="ot">=</span> <span class="st">'#D9A404'</span>, <span class="st">'Night'</span> <span class="ot">=</span> <span class="st">'#0F3BBF'</span>)) <span class="sc">+</span></span>
+<span id="cb11-16"><a href="#cb11-16"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Qtd. de Acidentes por Ano"</span>, <span class="at">x =</span> <span class="st">"Ano"</span>, <span class="at">y =</span> <span class="st">"Qtd. Acidentes"</span>) <span class="sc">+</span></span>
+<span id="cb11-17"><a href="#cb11-17"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb11-18"><a href="#cb11-18"></a>  <span class="fu">theme</span>(<span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>))</span>
+<span id="cb11-19"><a href="#cb11-19"></a>acidentes_ano_barplot_CT <span class="sc">%&gt;%</span> <span class="fu">ggplotly</span>(<span class="at">tooltip =</span> <span class="st">"text"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb11-20"><a href="#cb11-20"></a>  <span class="fu">layout</span>(</span>
+<span id="cb11-21"><a href="#cb11-21"></a>    <span class="at">legend =</span> <span class="fu">list</span>(</span>
+<span id="cb11-22"><a href="#cb11-22"></a>      <span class="at">title =</span> <span class="fu">list</span>(<span class="at">text =</span> <span class="st">'Tipo de Dia'</span>),  <span class="co"># Título da legenda</span></span>
+<span id="cb11-23"><a href="#cb11-23"></a>      <span class="at">font =</span> <span class="fu">list</span>(<span class="at">size =</span> <span class="dv">14</span>),  <span class="co"># Tamanho da fonte</span></span>
+<span id="cb11-24"><a href="#cb11-24"></a>      <span class="at">itemsizing =</span> <span class="st">'constant'</span>,  <span class="co"># Define o tamanho fixo dos itens da legenda</span></span>
+<span id="cb11-25"><a href="#cb11-25"></a>      <span class="at">traceorder =</span> <span class="st">'normal'</span>,  <span class="co"># Ordem das legendas</span></span>
+<span id="cb11-26"><a href="#cb11-26"></a>      <span class="at">marker =</span> <span class="fu">list</span>(</span>
+<span id="cb11-27"><a href="#cb11-27"></a>        <span class="at">size =</span> <span class="dv">10</span></span>
+<span id="cb11-28"><a href="#cb11-28"></a>      )</span>
+<span id="cb11-29"><a href="#cb11-29"></a>    )</span>
+<span id="cb11-30"><a href="#cb11-30"></a>  )</span></code><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Isso foi feito para os seguintes níveis de granularidade de tempo: ano, mês e dia. Para este último, foi traçada uma curva de ajuste com o auxílio da função geom_smooth do pacote ggplot2. Obtivemos resultados interessantes e os discutiremos na próxima seção.</p>
+<p>Alternativamente, foi feita uma análise entre as variáveis categóricas, dia da semana e faixa horária, a fim de explorar a relação entre elas. Para isso, foram utilizadas tabelas de contingência bem como matriz de calor, sempre com <code>ggplot2</code>. Essa técnica foi aplicada para verificar se existem horários e dias da semana com maior incidência de acidentes ou com variação na severidade dos acidentes.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Código</summary>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a><span class="co"># Cria uma tabela de contingencia de acidentes por dia da semana e faixa horaria</span></span>
+<span id="cb12-2"><a href="#cb12-2"></a>acidentes_US_sample_date[, .N, by <span class="ot">=</span> .(Weekday, Time_Range)] <span class="sc">%&gt;%</span> </span>
+<span id="cb12-3"><a href="#cb12-3"></a>  <span class="fu">dcast</span>(Time_Range <span class="sc">~</span> Weekday, <span class="at">value.var =</span> <span class="st">"N"</span>, <span class="at">fill =</span> <span class="dv">0</span>) <span class="sc">%&gt;%</span> <span class="fu">setorder</span>(<span class="sc">-</span>Time_Range)</span></code><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Código</summary>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1"></a><span class="co"># Cria uma matriz de calor para as variaveis dias da semana e faixa horaria</span></span>
+<span id="cb13-2"><a href="#cb13-2"></a>acidentes_data_matriz_AWKTR <span class="ot">&lt;-</span> acidentes_US_sample_date[Civil_Twilight <span class="sc">==</span> <span class="st">"Day"</span> <span class="sc">|</span> Civil_Twilight <span class="sc">==</span> <span class="st">"Night"</span>, .N, by <span class="ot">=</span> .(Weekday, Time_Range)] <span class="sc">%&gt;%</span></span>
+<span id="cb13-3"><a href="#cb13-3"></a>  <span class="fu">setorder</span>(Weekday, <span class="sc">-</span>Time_Range) <span class="sc">%&gt;%</span> <span class="co"># order data set increasingly by weekday and time range</span></span>
+<span id="cb13-4"><a href="#cb13-4"></a>  <span class="fu">as.data.frame</span>() <span class="sc">%&gt;%</span> <span class="co"># Transforming data.table into data.frame</span></span>
+<span id="cb13-5"><a href="#cb13-5"></a>  <span class="fu">ggplot</span>() <span class="sc">+</span> </span>
+<span id="cb13-6"><a href="#cb13-6"></a>  <span class="fu">aes</span>(<span class="at">x =</span> Weekday, <span class="at">y =</span> Time_Range, <span class="at">fill =</span> N) <span class="sc">+</span></span>
+<span id="cb13-7"><a href="#cb13-7"></a>  <span class="fu">geom_tile</span>() <span class="sc">+</span> </span>
+<span id="cb13-8"><a href="#cb13-8"></a>  <span class="fu">scale_fill_gradient</span>(<span class="at">low =</span> <span class="st">"white"</span>, <span class="at">high =</span> <span class="st">"darkred"</span>) <span class="sc">+</span></span>
+<span id="cb13-9"><a href="#cb13-9"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Agenda Diaria de Acidentes"</span>, <span class="at">x =</span> <span class="st">"Dia da Semana"</span>, <span class="at">y =</span> <span class="st">"Horario"</span>) <span class="sc">+</span> </span>
+<span id="cb13-10"><a href="#cb13-10"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span> </span>
+<span id="cb13-11"><a href="#cb13-11"></a>  <span class="fu">scale_x_discrete</span>(<span class="at">position =</span> <span class="st">"top"</span>) <span class="sc">+</span></span>
+<span id="cb13-12"><a href="#cb13-12"></a>  <span class="fu">theme</span>(</span>
+<span id="cb13-13"><a href="#cb13-13"></a>    <span class="at">axis.title.x.top =</span> <span class="fu">element_text</span>(),</span>
+<span id="cb13-14"><a href="#cb13-14"></a>    <span class="at">axis.text.x.top =</span> <span class="fu">element_text</span>(),</span>
+<span id="cb13-15"><a href="#cb13-15"></a>    <span class="at">axis.line.x.top =</span> <span class="fu">element_line</span>(),</span>
+<span id="cb13-16"><a href="#cb13-16"></a>    <span class="at">axis.ticks.x.top =</span> <span class="fu">element_line</span>()</span>
+<span id="cb13-17"><a href="#cb13-17"></a>    </span>
+<span id="cb13-18"><a href="#cb13-18"></a>  )</span>
+<span id="cb13-19"><a href="#cb13-19"></a>acidentes_data_matriz_AWKTR</span></code><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Ademais, a fim de investigar a severidade média dos acidentes ao longo do tempo, foi realizada uma análise de tendência da média de severidade dos acidentes por ano. Para isso, foi feito um gráfico de pontos associado a um ajuste de curva (geom_smooth).</p>
+<p>De modo geral, para cada análise foi feita uma sumarização de dados, seguida de uma visualização dos resultados obtidos. Os códigos acima são apenas exemplos e, na seção de resultados e discussão, mais detalhes serão mostrados.</p>
+</section>
+<section id="técnicas-de-análise-para-as-variáveis-de-localização" class="level4" data-number="2.4.2">
+<h4 data-number="2.4.2" class="anchored" data-anchor-id="técnicas-de-análise-para-as-variáveis-de-localização"><span class="header-section-number">2.4.2</span> Técnicas de Análise para as <a href="#grupo_variaveis">Variáveis</a> de Localização</h4>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Código</summary>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1"></a><span class="fu">leaflet</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb14-2"><a href="#cb14-2"></a>      <span class="fu">addTiles</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb14-3"><a href="#cb14-3"></a>      <span class="fu">addPolygons</span>(</span>
+<span id="cb14-4"><a href="#cb14-4"></a>        <span class="at">data =</span> acidentes_p_estado,</span>
+<span id="cb14-5"><a href="#cb14-5"></a>        <span class="at">fillColor =</span> <span class="sc">~</span><span class="fu">palestado</span>(n),</span>
+<span id="cb14-6"><a href="#cb14-6"></a>        <span class="at">weight =</span> <span class="dv">2</span>,</span>
+<span id="cb14-7"><a href="#cb14-7"></a>        <span class="at">color =</span> <span class="st">"black"</span>,</span>
+<span id="cb14-8"><a href="#cb14-8"></a>        <span class="at">fillOpacity =</span> <span class="fl">0.4</span>,</span>
+<span id="cb14-9"><a href="#cb14-9"></a>        <span class="at">label =</span> <span class="sc">~</span>NAME,</span>
+<span id="cb14-10"><a href="#cb14-10"></a>        <span class="at">popup =</span> <span class="sc">~</span><span class="fu">glue</span>(<span class="st">"&lt;b&gt;Estado: &lt;/b&gt; {NAME}&lt;br&gt;&lt;b&gt;Quantidade de acidentes: &lt;/b&gt; {n}"</span>),</span>
+<span id="cb14-11"><a href="#cb14-11"></a>        <span class="at">highlightOptions =</span> <span class="fu">highlightOptions</span>(</span>
+<span id="cb14-12"><a href="#cb14-12"></a>          <span class="at">weight =</span> <span class="dv">3</span>,</span>
+<span id="cb14-13"><a href="#cb14-13"></a>          <span class="at">color =</span> <span class="st">"#666"</span>,</span>
+<span id="cb14-14"><a href="#cb14-14"></a>          <span class="at">fillOpacity =</span> <span class="fl">0.6</span>,</span>
+<span id="cb14-15"><a href="#cb14-15"></a>          <span class="at">bringToFront =</span> <span class="cn">TRUE</span></span>
+<span id="cb14-16"><a href="#cb14-16"></a>        ),</span>
+<span id="cb14-17"><a href="#cb14-17"></a>        <span class="at">group =</span> <span class="st">"Nível estadual"</span></span>
+<span id="cb14-18"><a href="#cb14-18"></a>      ) <span class="sc">%&gt;%</span></span>
+<span id="cb14-19"><a href="#cb14-19"></a>      <span class="fu">addLegend</span>(</span>
+<span id="cb14-20"><a href="#cb14-20"></a>        <span class="st">"bottomright"</span>,</span>
+<span id="cb14-21"><a href="#cb14-21"></a>        <span class="at">pal =</span> palestado,</span>
+<span id="cb14-22"><a href="#cb14-22"></a>        <span class="at">values =</span> acidentes_p_estado<span class="sc">$</span>n,</span>
+<span id="cb14-23"><a href="#cb14-23"></a>        <span class="at">title =</span> <span class="st">"Número de Acidentes"</span>,</span>
+<span id="cb14-24"><a href="#cb14-24"></a>        <span class="at">opacity =</span> <span class="dv">1</span>,</span>
+<span id="cb14-25"><a href="#cb14-25"></a>        <span class="at">group =</span> <span class="st">"Nível estadual"</span></span>
+<span id="cb14-26"><a href="#cb14-26"></a>      ) <span class="sc">%&gt;%</span></span>
+<span id="cb14-27"><a href="#cb14-27"></a>      <span class="fu">addHeatmap</span>(</span>
+<span id="cb14-28"><a href="#cb14-28"></a>        <span class="at">data =</span> mapa_de_calor,</span>
+<span id="cb14-29"><a href="#cb14-29"></a>        <span class="at">lng =</span> <span class="sc">~</span><span class="st">`</span><span class="at">Start Lng</span><span class="st">`</span>,</span>
+<span id="cb14-30"><a href="#cb14-30"></a>        <span class="at">lat =</span> <span class="sc">~</span><span class="st">`</span><span class="at">Start Lat</span><span class="st">`</span>,</span>
+<span id="cb14-31"><a href="#cb14-31"></a>        <span class="at">intensity =</span> <span class="sc">~</span>n,</span>
+<span id="cb14-32"><a href="#cb14-32"></a>        <span class="at">blur =</span> <span class="dv">20</span>,</span>
+<span id="cb14-33"><a href="#cb14-33"></a>        <span class="at">radius =</span> <span class="dv">15</span>,</span>
+<span id="cb14-34"><a href="#cb14-34"></a>        <span class="at">group =</span> <span class="st">"Mapa de calor"</span></span>
+<span id="cb14-35"><a href="#cb14-35"></a>      ) <span class="sc">%&gt;%</span></span>
+<span id="cb14-36"><a href="#cb14-36"></a>      <span class="fu">addLayersControl</span>(</span>
+<span id="cb14-37"><a href="#cb14-37"></a>        <span class="at">baseGroups =</span> <span class="fu">c</span>(<span class="st">"Nível estadual"</span>, <span class="st">"Mapa de calor"</span>),</span>
+<span id="cb14-38"><a href="#cb14-38"></a>        <span class="at">position =</span> <span class="st">"topright"</span></span>
+<span id="cb14-39"><a href="#cb14-39"></a>      )</span></code><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+<section id="técnicas-de-análise-para-as-variáveis-de-condições-climáticas" class="level4" data-number="2.4.3">
+<h4 data-number="2.4.3" class="anchored" data-anchor-id="técnicas-de-análise-para-as-variáveis-de-condições-climáticas"><span class="header-section-number">2.4.3</span> Técnicas de Análise para as <a href="#grupo_variaveis">Variáveis</a> de Condições Climáticas</h4>
+<p>Para as variáveis de condições climáticas, foram realizadas análises de frequência de acidente por condição climática.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Código</summary>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1"></a>condicoes_count <span class="ot">&lt;-</span> acidentes_US_sample <span class="sc">%&gt;%</span></span>
+<span id="cb15-2"><a href="#cb15-2"></a>  <span class="fu">group_by</span>(Weather_Cluster) <span class="sc">%&gt;%</span></span>
+<span id="cb15-3"><a href="#cb15-3"></a>  <span class="fu">tally</span>(<span class="at">name =</span> <span class="st">"Count"</span>)</span>
+<span id="cb15-4"><a href="#cb15-4"></a><span class="fu">ggplot</span>(condicoes_count, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">reorder</span>(Weather_Cluster, <span class="sc">-</span>Count), <span class="at">y =</span> Count, <span class="at">fill =</span> Weather_Cluster)) <span class="sc">+</span></span>
+<span id="cb15-5"><a href="#cb15-5"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">"identity"</span>) <span class="sc">+</span></span>
+<span id="cb15-6"><a href="#cb15-6"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Número de Acidentes por Condição Climática"</span>, <span class="at">x =</span> <span class="st">"Condição Climática"</span>, <span class="at">y =</span> <span class="st">"Número de Acidentes"</span>) <span class="sc">+</span></span>
+<span id="cb15-7"><a href="#cb15-7"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb15-8"><a href="#cb15-8"></a>  <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">45</span>, <span class="at">hjust =</span> <span class="dv">1</span>))</span></code><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Este gráfico mostra que a maioria dos acidentes ocorrem quando o céu está limpo.</p>
+<p>Depois, foi analisado a correlação entre as variáveis climáticas.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Código</summary>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1"></a>climatic_data <span class="ot">&lt;-</span> acidentes_US_sample <span class="sc">%&gt;%</span></span>
+<span id="cb16-2"><a href="#cb16-2"></a>  <span class="fu">select</span>(<span class="st">`</span><span class="at">Temperature(F)</span><span class="st">`</span>, <span class="st">`</span><span class="at">Humidity(%)</span><span class="st">`</span>, <span class="st">`</span><span class="at">Pressure(in)</span><span class="st">`</span>, <span class="st">`</span><span class="at">Wind_Speed(mph)</span><span class="st">`</span>,<span class="st">`</span><span class="at">Visibility(mi)</span><span class="st">`</span>, <span class="st">`</span><span class="at">Wind_Chill(F)</span><span class="st">`</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb16-3"><a href="#cb16-3"></a>  <span class="fu">na.omit</span>()</span>
+<span id="cb16-4"><a href="#cb16-4"></a></span>
+<span id="cb16-5"><a href="#cb16-5"></a>cor_matrix <span class="ot">&lt;-</span> <span class="fu">cor</span>(climatic_data)</span>
+<span id="cb16-6"><a href="#cb16-6"></a><span class="fu">corrplot</span>(cor_matrix, <span class="at">method =</span> <span class="st">"color"</span>, <span class="at">type =</span> <span class="st">"upper"</span>, <span class="at">tl.col =</span> <span class="st">"black"</span>)</span></code><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Foi analisado que, algumas delas possuem correlação positiva e outras, negativa.</p>
+<p>No próximo passo, o objetivo era analisar o número de acidentes por Condição Climática. Para isso, foi preciso agrupar por condição climática, contar o número de acidentes e fazer um gráfico de barras.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Código</summary>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1"></a><span class="co"># Número de acidentes por condição climática</span></span>
+<span id="cb17-2"><a href="#cb17-2"></a>condicoes_count <span class="ot">&lt;-</span> acidentes_US_sample <span class="sc">%&gt;%</span></span>
+<span id="cb17-3"><a href="#cb17-3"></a>  <span class="fu">group_by</span>(Weather_Cluster) <span class="sc">%&gt;%</span></span>
+<span id="cb17-4"><a href="#cb17-4"></a>  <span class="fu">tally</span>(<span class="at">name =</span> <span class="st">"Count"</span>)</span>
+<span id="cb17-5"><a href="#cb17-5"></a><span class="fu">ggplot</span>(condicoes_count, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">reorder</span>(Weather_Cluster, <span class="sc">-</span>Count), <span class="at">y =</span> Count, <span class="at">fill =</span> Weather_Cluster)) <span class="sc">+</span></span>
+<span id="cb17-6"><a href="#cb17-6"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">"identity"</span>) <span class="sc">+</span></span>
+<span id="cb17-7"><a href="#cb17-7"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Número de Acidentes por Condição Climática"</span>, <span class="at">x =</span> <span class="st">"Condição Climática"</span>, <span class="at">y =</span> <span class="st">"Número de Acidentes"</span>) <span class="sc">+</span></span>
+<span id="cb17-8"><a href="#cb17-8"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb17-9"><a href="#cb17-9"></a>  <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">45</span>, <span class="at">hjust =</span> <span class="dv">1</span>))</span></code><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Depois, foram analisadas as distribuições de precipitação e visibilidade.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Código</summary>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1"></a><span class="fu">ggplot</span>(acidentes_US_sample, <span class="fu">aes</span>(<span class="at">x =</span> <span class="st">`</span><span class="at">Precipitation(in)</span><span class="st">`</span>)) <span class="sc">+</span></span>
+<span id="cb18-2"><a href="#cb18-2"></a>  <span class="fu">geom_histogram</span>(<span class="at">binwidth =</span> <span class="fl">0.1</span>, <span class="at">fill =</span> <span class="st">"blue"</span>, <span class="at">color =</span> <span class="st">"black"</span>) <span class="sc">+</span></span>
+<span id="cb18-3"><a href="#cb18-3"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Distribuição de Precipitação"</span>, <span class="at">x =</span> <span class="st">"Precipitação (in.)"</span>, <span class="at">y =</span> <span class="st">"Contagem"</span>)</span>
+<span id="cb18-4"><a href="#cb18-4"></a></span>
+<span id="cb18-5"><a href="#cb18-5"></a></span>
+<span id="cb18-6"><a href="#cb18-6"></a><span class="fu">ggplot</span>(acidentes_US_sample, <span class="fu">aes</span>(<span class="at">x =</span> <span class="st">`</span><span class="at">Visibility(mi)</span><span class="st">`</span>)) <span class="sc">+</span></span>
+<span id="cb18-7"><a href="#cb18-7"></a>  <span class="fu">geom_histogram</span>(<span class="at">binwidth =</span> <span class="dv">1</span>, <span class="at">fill =</span> <span class="st">"green"</span>, <span class="at">color =</span> <span class="st">"black"</span>) <span class="sc">+</span></span>
+<span id="cb18-8"><a href="#cb18-8"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Distribuição de Visibilidade"</span>, <span class="at">x =</span> <span class="st">"Visibilidade (milhas)"</span>, <span class="at">y =</span> <span class="st">"Contagem"</span>)</span></code><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Para analisar o número de acidentes por condição de chuva no dia foi feito um gráfico de barras.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Código</summary>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1"></a>accident_chuva <span class="ot">&lt;-</span> acidentes_US_sample <span class="sc">%&gt;%</span></span>
+<span id="cb19-2"><a href="#cb19-2"></a>  <span class="fu">group_by</span>(Choveu) <span class="sc">%&gt;%</span></span>
+<span id="cb19-3"><a href="#cb19-3"></a>  <span class="fu">summarise</span>(<span class="at">Accident_Count =</span> <span class="fu">n</span>())</span>
+<span id="cb19-4"><a href="#cb19-4"></a>  </span>
+<span id="cb19-5"><a href="#cb19-5"></a></span>
+<span id="cb19-6"><a href="#cb19-6"></a><span class="fu">ggplot</span>(accident_chuva, <span class="fu">aes</span>(<span class="at">x =</span> Choveu, <span class="at">y =</span> Accident_Count, <span class="at">fill =</span> Choveu)) <span class="sc">+</span></span>
+<span id="cb19-7"><a href="#cb19-7"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">"identity"</span>) <span class="sc">+</span></span>
+<span id="cb19-8"><a href="#cb19-8"></a>  <span class="fu">labs</span>(</span>
+<span id="cb19-9"><a href="#cb19-9"></a>    <span class="at">title =</span> <span class="st">"Acidentes em Cidades com Chuva vs. Sem Chuva"</span>,</span>
+<span id="cb19-10"><a href="#cb19-10"></a>    <span class="at">x =</span> <span class="st">"Choveu?"</span>,</span>
+<span id="cb19-11"><a href="#cb19-11"></a>    <span class="at">y =</span> <span class="st">"Número de Acidentes"</span></span>
+<span id="cb19-12"><a href="#cb19-12"></a>  ) <span class="sc">+</span></span>
+<span id="cb19-13"><a href="#cb19-13"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Aqui podemos analisar que há um número muito maior de acidentes quando não chove do que quando chove.</p>
+<p>Por último, foram realizadas análises da relação entre a precipitação(chuva) e a severidade do acidente.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Código</summary>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1"></a>  <span class="fu">ggplot</span>(acidentes_US_sample, <span class="fu">aes</span>(<span class="at">x =</span> <span class="st">`</span><span class="at">Precipitation(in)</span><span class="st">`</span>, <span class="at">y =</span> Severity)) <span class="sc">+</span></span>
+<span id="cb20-2"><a href="#cb20-2"></a>    <span class="fu">geom_jitter</span>(<span class="at">width =</span> <span class="fl">0.2</span>, <span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb20-3"><a href="#cb20-3"></a>    <span class="fu">labs</span>(</span>
+<span id="cb20-4"><a href="#cb20-4"></a>      <span class="at">title =</span> <span class="st">"Relação entre Precipitação e Severidade"</span>,</span>
+<span id="cb20-5"><a href="#cb20-5"></a>      <span class="at">x =</span> <span class="st">"Precipitação (mm ou in)"</span>,</span>
+<span id="cb20-6"><a href="#cb20-6"></a>      <span class="at">y =</span> <span class="st">"Severidade"</span></span>
+<span id="cb20-7"><a href="#cb20-7"></a>    ) <span class="sc">+</span></span>
+<span id="cb20-8"><a href="#cb20-8"></a>    <span class="fu">theme_minimal</span>()</span></code><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+<section id="técnicas-de-análise-para-as-variáveis-de-sinalização-e-infraestrutura" class="level4" data-number="2.4.4">
+<h4 data-number="2.4.4" class="anchored" data-anchor-id="técnicas-de-análise-para-as-variáveis-de-sinalização-e-infraestrutura"><span class="header-section-number">2.4.4</span> Técnicas de Análise para as <a href="#grupo_variaveis">Variáveis</a> de Sinalização e Infraestrutura</h4>
+<p>Para as variáveis de infraestrutura e sinalização, foram realizadas análises de frequência de acidentes com e sem cada ponto de interesse</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Código</summary>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1"></a>barplot <span class="ot">&lt;-</span> acidentes_US_sample <span class="sc">%&gt;%</span> <span class="fu">select</span>(Amenity<span class="sc">:</span>Turning_Loop) <span class="sc">%&gt;%</span></span>
+<span id="cb21-2"><a href="#cb21-2"></a>      <span class="fu">pivot_longer</span>(<span class="fu">everything</span>(), <span class="at">names_to =</span> <span class="st">"poi"</span>, <span class="at">values_to =</span> <span class="st">"value"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb21-3"><a href="#cb21-3"></a>      <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> poi, <span class="at">fill =</span> value)) <span class="sc">+</span></span>
+<span id="cb21-4"><a href="#cb21-4"></a>      <span class="fu">geom_bar</span>() <span class="sc">+</span></span>
+<span id="cb21-5"><a href="#cb21-5"></a>      <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Pontos de Interesse"</span>,</span>
+<span id="cb21-6"><a href="#cb21-6"></a>           <span class="at">x =</span> <span class="cn">NULL</span>,</span>
+<span id="cb21-7"><a href="#cb21-7"></a>           <span class="at">y =</span> <span class="cn">NULL</span>,</span>
+<span id="cb21-8"><a href="#cb21-8"></a>           <span class="at">fill =</span> <span class="st">"Presença de poi"</span>,</span>
+<span id="cb21-9"><a href="#cb21-9"></a>           <span class="at">legend.position =</span> <span class="st">"bottom"</span>) <span class="sc">+</span></span>
+<span id="cb21-10"><a href="#cb21-10"></a>      <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb21-11"><a href="#cb21-11"></a>      <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">45</span>, <span class="at">hjust =</span> <span class="dv">1</span>)) <span class="sc">+</span></span>
+<span id="cb21-12"><a href="#cb21-12"></a>      <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> comma) <span class="sc">+</span></span>
+<span id="cb21-13"><a href="#cb21-13"></a>      <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"darkgreen"</span>, <span class="st">"darkred"</span>),</span>
+<span id="cb21-14"><a href="#cb21-14"></a>                        <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"Não"</span>, <span class="st">"Sim"</span>))</span>
+<span id="cb21-15"><a href="#cb21-15"></a>    </span>
+<span id="cb21-16"><a href="#cb21-16"></a>    <span class="fu">ggplotly</span>(barplot)</span></code><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Este gráfico torna evidente que a grande maioria dos acidentes não ocorre próximo a qualquer ponto de interesse, porém é notável que há um aumento de acidentes em locais onde fluxos diferentes se encontram, como cruzamentos e junções.</p>
+</section>
+<section id="técnicas-de-análise-para-as-variáveis-de-duração-do-acidente." class="level4" data-number="2.4.5">
+<h4 data-number="2.4.5" class="anchored" data-anchor-id="técnicas-de-análise-para-as-variáveis-de-duração-do-acidente."><span class="header-section-number">2.4.5</span> Técnicas de Análise para as <a href="#grupo_variaveis">Variáveis</a> de Duração do acidente.</h4>
+<p>Para analisar a duração dos acidentes, foi construído um boxplot para analisar a distribuição de acidentes por severidade e por duração, para verificar se tinha uma relação entre essas duas variáveis.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Código</summary>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1"></a><span class="fu">ggplot</span>(acidentes_US_sample, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">as.factor</span>(Severity), <span class="at">y =</span> Duration_minutes)) <span class="sc">+</span></span>
+<span id="cb22-2"><a href="#cb22-2"></a>  <span class="fu">geom_boxplot</span>(<span class="at">outlier.shape =</span> <span class="cn">NA</span>) <span class="sc">+</span></span>
+<span id="cb22-3"><a href="#cb22-3"></a>  <span class="fu">labs</span>(</span>
+<span id="cb22-4"><a href="#cb22-4"></a>    <span class="at">title =</span> <span class="st">"Duração dos Acidentes por Severidade"</span>,</span>
+<span id="cb22-5"><a href="#cb22-5"></a>    <span class="at">x =</span> <span class="st">"Severidade"</span>,</span>
+<span id="cb22-6"><a href="#cb22-6"></a>    <span class="at">y =</span> <span class="st">"Duração (minutos)"</span></span>
+<span id="cb22-7"><a href="#cb22-7"></a>  ) <span class="sc">+</span></span>
+<span id="cb22-8"><a href="#cb22-8"></a>    <span class="fu">scale_y_continuous</span>(<span class="at">limits =</span> <span class="fu">quantile</span>(acidentes_US_sample<span class="sc">$</span>Duration_minutes, <span class="fu">c</span>(<span class="fl">0.0</span>, <span class="fl">0.9</span>)))<span class="sc">+</span></span>
+<span id="cb22-9"><a href="#cb22-9"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Como possuía muitos outliers e isso dificultava a visualização, optamos por retirá-los e calcular os limites a partir da densidade dos dados.</p>
+</section>
+</section>
+</section>
+<section id="resultados-e-discussão" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="resultados-e-discussão"><span class="header-section-number">3</span> Resultados e Discussão</h2>
+<p>Com os dados processados e metologias estatisticas aplicadas, vamos agora de fato analisar os dados e extrair informações relevantes. Far-lo-emos para cada grupo de variáveis, apresentando os resultados obtidos e discutindo-os.</p>
+<section id="resultados-para-as-variáveis-temporais" class="level3" data-number="3.1">
+<h3 data-number="3.1" class="anchored" data-anchor-id="resultados-para-as-variáveis-temporais"><span class="header-section-number">3.1</span> Resultados para as <a href="#grupo_variaveis">Variáveis</a> Temporais</h3>
+<p>Começando pelo básico, vamos observar a distribuição de acidentes ao longo dos anos.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Código</summary>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1"></a>acidentes_ano_barplot <span class="ot">&lt;-</span> acidentes_US_date[Civil_Twilight <span class="sc">==</span> <span class="st">"Day"</span> <span class="sc">|</span> Civil_Twilight <span class="sc">==</span> <span class="st">"Night"</span>,</span>
+<span id="cb23-2"><a href="#cb23-2"></a>                                            .(.N,</span>
+<span id="cb23-3"><a href="#cb23-3"></a>                                              <span class="at">Distinct_date =</span> <span class="fu">uniqueN</span>(Date),</span>
+<span id="cb23-4"><a href="#cb23-4"></a>                                              <span class="at">Media_diaria =</span> <span class="fu">round</span>(.N<span class="sc">/</span><span class="fu">uniqueN</span>(Date),<span class="dv">0</span>)),</span>
+<span id="cb23-5"><a href="#cb23-5"></a>                                            by <span class="ot">=</span> Year][</span>
+<span id="cb23-6"><a href="#cb23-6"></a>                                              <span class="fu">order</span>(Year)][</span>
+<span id="cb23-7"><a href="#cb23-7"></a>                                                , Percent_variation <span class="sc">:</span><span class="er">=</span> <span class="fu">round</span>((Media_diaria <span class="sc">-</span> <span class="fu">shift</span>(Media_diaria))<span class="sc">/</span><span class="fu">shift</span>(Media_diaria), <span class="dv">2</span>)] <span class="sc">%&gt;%</span> </span>
+<span id="cb23-8"><a href="#cb23-8"></a>  <span class="fu">setorder</span>(Year) <span class="sc">%&gt;%</span> <span class="co"># order data set increasingly by year</span></span>
+<span id="cb23-9"><a href="#cb23-9"></a>  <span class="fu">as.data.frame</span>() <span class="sc">%&gt;%</span> <span class="co"># Transforming data.table into data.frame</span></span>
+<span id="cb23-10"><a href="#cb23-10"></a>  <span class="fu">ggplot</span>() <span class="sc">+</span> </span>
+<span id="cb23-11"><a href="#cb23-11"></a>  <span class="fu">aes</span>(<span class="at">x =</span> Year, <span class="at">y =</span> N,</span>
+<span id="cb23-12"><a href="#cb23-12"></a>      <span class="at">text =</span> <span class="fu">paste</span>(<span class="st">"Ano:"</span>, Year,</span>
+<span id="cb23-13"><a href="#cb23-13"></a>                   <span class="st">"&lt;br&gt;Qtd. Acidentes:"</span>, <span class="fu">round</span>(N<span class="sc">/</span><span class="dv">1000</span>, <span class="dv">1</span>), <span class="st">"k"</span>,</span>
+<span id="cb23-14"><a href="#cb23-14"></a>                   <span class="st">"&lt;br&gt;Disa Obs. no Ano:"</span>, Distinct_date,</span>
+<span id="cb23-15"><a href="#cb23-15"></a>                   <span class="st">"&lt;br&gt;Acidentes por Dia:"</span>, <span class="fu">round</span>(Media_diaria<span class="sc">/</span><span class="dv">1000</span>, <span class="dv">1</span>), <span class="st">"k"</span>)) <span class="sc">+</span> </span>
+<span id="cb23-16"><a href="#cb23-16"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">"identity"</span>, <span class="at">fill =</span> <span class="st">"darkred"</span>) <span class="sc">+</span> </span>
+<span id="cb23-17"><a href="#cb23-17"></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">percent</span>(Percent_variation)), <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span> </span>
+<span id="cb23-18"><a href="#cb23-18"></a>  <span class="fu">scale_y_continuous</span>(</span>
+<span id="cb23-19"><a href="#cb23-19"></a>    <span class="at">labels =</span> <span class="fu">label_number</span>(<span class="at">scale =</span> <span class="dv">1</span><span class="sc">/</span><span class="dv">1000</span>, <span class="at">suffix =</span> <span class="st">"k"</span>) <span class="co"># Divide por 1000 e adiciona o sufixo "k"</span></span>
+<span id="cb23-20"><a href="#cb23-20"></a>  ) <span class="sc">+</span></span>
+<span id="cb23-21"><a href="#cb23-21"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Qtd. de Acidentes por Ano"</span>, <span class="at">x =</span> <span class="st">"Ano"</span>, <span class="at">y =</span> <span class="st">"Qtd. Acidentes"</span>) <span class="sc">+</span></span>
+<span id="cb23-22"><a href="#cb23-22"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span> </span>
+<span id="cb23-23"><a href="#cb23-23"></a>  <span class="fu">theme</span>(<span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>)) <span class="sc">+</span> </span>
+<span id="cb23-24"><a href="#cb23-24"></a>  <span class="fu">plotly</span>()</span>
+<span id="cb23-25"><a href="#cb23-25"></a>acidentes_ano_barplot <span class="sc">%&gt;%</span> <span class="fu">ggplotly</span>(<span class="at">tooltip =</span> <span class="st">"text"</span>)</span></code><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Não nos resta dúvida de que houve um aumento significativo na quantidade de acidentes ao longo dos anos, com aumentos percentuais de 56, 24, 7, 23, 33, 16 e −33 por cento entre cada um dos anos de 2016 até 2023. Observa-se, entretanto, que houve apenas 73 dias observados no último ano, o que pode ter influenciado na queda de 33 por cento na quantidade de acidentes, não nos permitindo tirar conclusões definitivas.</p>
+<p>Agora, realizando a mesma investigação, porém observando apenas ao nível mês da granularidade do tempo:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Código</summary>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1"></a>acidentes_mes_barplot <span class="ot">&lt;-</span> acidentes_US_date[Civil_Twilight <span class="sc">==</span> <span class="st">"Day"</span> <span class="sc">|</span> Civil_Twilight <span class="sc">==</span> <span class="st">"Night"</span>,</span>
+<span id="cb24-2"><a href="#cb24-2"></a>                                            .(.N,</span>
+<span id="cb24-3"><a href="#cb24-3"></a>                                              <span class="at">Distinct_date =</span> <span class="fu">uniqueN</span>(Date),</span>
+<span id="cb24-4"><a href="#cb24-4"></a>                                              <span class="at">Media_diaria =</span> <span class="fu">round</span>(.N<span class="sc">/</span><span class="fu">uniqueN</span>(Date),<span class="dv">0</span>)),</span>
+<span id="cb24-5"><a href="#cb24-5"></a>                                            by <span class="ot">=</span> Month][</span>
+<span id="cb24-6"><a href="#cb24-6"></a>                                              <span class="fu">order</span>(Month)][</span>
+<span id="cb24-7"><a href="#cb24-7"></a>                                                , Percent_variation <span class="sc">:</span><span class="er">=</span> <span class="fu">round</span>((Media_diaria <span class="sc">-</span> <span class="fu">shift</span>(Media_diaria))<span class="sc">/</span><span class="fu">shift</span>(Media_diaria), <span class="dv">2</span>)] <span class="sc">%&gt;%</span></span>
+<span id="cb24-8"><a href="#cb24-8"></a>  <span class="fu">setorder</span>(Month) <span class="sc">%&gt;%</span> <span class="co"># order data set increasingly by month</span></span>
+<span id="cb24-9"><a href="#cb24-9"></a>  <span class="fu">as.data.frame</span>() <span class="sc">%&gt;%</span> <span class="co"># Transforming data.table into data.frame</span></span>
+<span id="cb24-10"><a href="#cb24-10"></a>  <span class="fu">ggplot</span>() <span class="sc">+</span> </span>
+<span id="cb24-11"><a href="#cb24-11"></a>  <span class="fu">aes</span>(<span class="at">x =</span> Month, <span class="at">y =</span> N,</span>
+<span id="cb24-12"><a href="#cb24-12"></a>      <span class="at">text =</span> <span class="fu">paste</span>(<span class="st">"Mes:"</span>, Month,</span>
+<span id="cb24-13"><a href="#cb24-13"></a>                   <span class="st">"&lt;br&gt;Qtd. Acidentes:"</span>, <span class="fu">round</span>(N<span class="sc">/</span><span class="dv">1000</span>, <span class="dv">1</span>), <span class="st">"k"</span>,</span>
+<span id="cb24-14"><a href="#cb24-14"></a>                   <span class="st">"&lt;br&gt;Dias Obs. no Mes:"</span>, Distinct_date,</span>
+<span id="cb24-15"><a href="#cb24-15"></a>                   <span class="st">"&lt;br&gt;Acidentes por Dia:"</span>, <span class="fu">round</span>(Media_diaria<span class="sc">/</span><span class="dv">1000</span>, <span class="dv">1</span>), <span class="st">"k"</span>)) <span class="sc">+</span> </span>
+<span id="cb24-16"><a href="#cb24-16"></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">percent</span>(Percent_variation)), <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb24-17"><a href="#cb24-17"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">"identity"</span>, <span class="at">fill =</span> <span class="st">"darkred"</span>) <span class="sc">+</span></span>
+<span id="cb24-18"><a href="#cb24-18"></a>  <span class="fu">scale_y_continuous</span>(</span>
+<span id="cb24-19"><a href="#cb24-19"></a>    <span class="at">labels =</span> <span class="fu">label_number</span>(<span class="at">scale =</span> <span class="dv">1</span><span class="sc">/</span><span class="dv">1000</span>, <span class="at">suffix =</span> <span class="st">"k"</span>) <span class="co"># Divide por 1000 e adiciona o sufixo "k"</span></span>
+<span id="cb24-20"><a href="#cb24-20"></a>  ) <span class="sc">+</span></span>
+<span id="cb24-21"><a href="#cb24-21"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Qtd. de Acidentes por Mes"</span>, <span class="at">x =</span> <span class="st">"Mes"</span>, <span class="at">y =</span> <span class="st">"Qtd. Acidentes"</span>) <span class="sc">+</span></span>
+<span id="cb24-22"><a href="#cb24-22"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span> </span>
+<span id="cb24-23"><a href="#cb24-23"></a>  <span class="fu">theme</span>(<span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>))</span>
+<span id="cb24-24"><a href="#cb24-24"></a>acidentes_mes_barplot <span class="sc">%&gt;%</span> <span class="fu">ggplotly</span>(<span class="at">tooltip =</span> <span class="st">"text"</span>)</span></code><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Aqui, observamos que a quantidade de acidentes é maior nos meses de outubro, novembro e dezembro, com uma queda significativa a partir de janeiro até julho. Isso nos permite inferir um certo grau de sazonalidade entre os meses de um ano, com pico sempre no mês mais festivo: dezembro.</p>
+<p>Por finalizar as análises de distribuição de frequências, analisamos os acidentes dia a dia:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Código</summary>
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1"></a>data_timeseries <span class="ot">&lt;-</span> acidentes_US_date[Civil_Twilight <span class="sc">==</span> <span class="st">"Day"</span> <span class="sc">|</span> Civil_Twilight <span class="sc">==</span> <span class="st">"Night"</span>, .(.N), by <span class="ot">=</span> .(Date)] <span class="sc">%&gt;%</span> </span>
+<span id="cb25-2"><a href="#cb25-2"></a>  <span class="fu">setorder</span>(Date) <span class="sc">%&gt;%</span> <span class="co"># order data set increasingly by date</span></span>
+<span id="cb25-3"><a href="#cb25-3"></a>  <span class="fu">as.data.frame</span>() <span class="sc">%&gt;%</span>  <span class="co"># Transforming data.table into data.frame</span></span>
+<span id="cb25-4"><a href="#cb25-4"></a>  <span class="fu">ggplot</span>() <span class="sc">+</span> </span>
+<span id="cb25-5"><a href="#cb25-5"></a>  <span class="fu">aes</span>(<span class="at">x =</span> Date, <span class="at">y =</span> N) <span class="sc">+</span> </span>
+<span id="cb25-6"><a href="#cb25-6"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">"identity"</span>, <span class="at">alpha =</span> <span class="fl">0.4</span>, <span class="at">fill =</span> <span class="st">"darkred"</span>, <span class="at">alpha =</span> <span class="fl">0.6</span>) <span class="sc">+</span></span>
+<span id="cb25-7"><a href="#cb25-7"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="fl">0.5</span>, <span class="at">alpha =</span> <span class="fl">0.5</span>, <span class="at">color =</span> <span class="st">"darkred"</span>,</span>
+<span id="cb25-8"><a href="#cb25-8"></a>             <span class="fu">aes</span>(<span class="at">text =</span> <span class="fu">paste</span>(<span class="st">"Data:"</span>, Date, <span class="st">"&lt;br&gt;Qtd. Acidentes:"</span>, N<span class="sc">/</span><span class="dv">1000</span>, <span class="st">"k"</span>))) <span class="sc">+</span></span>
+<span id="cb25-9"><a href="#cb25-9"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"gam"</span>, <span class="at">color =</span> <span class="st">"darkred"</span>, <span class="at">size =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb25-10"><a href="#cb25-10"></a>  <span class="fu">scale_y_continuous</span>(</span>
+<span id="cb25-11"><a href="#cb25-11"></a>    <span class="at">labels =</span> <span class="fu">label_number</span>(<span class="at">scale =</span> <span class="dv">1</span><span class="sc">/</span><span class="dv">1000</span>, <span class="at">suffix =</span> <span class="st">"k"</span>) <span class="co"># Divide por 1000 e adiciona o sufixo "k"</span></span>
+<span id="cb25-12"><a href="#cb25-12"></a>  ) <span class="sc">+</span></span>
+<span id="cb25-13"><a href="#cb25-13"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Qtd. de Acidentes por Data"</span>, <span class="at">x =</span> <span class="st">"Data"</span>, <span class="at">y =</span> <span class="st">"Qtd. Acidentes"</span>) <span class="sc">+</span></span>
+<span id="cb25-14"><a href="#cb25-14"></a>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb25-15"><a href="#cb25-15"></a>data_timeseries <span class="sc">%&gt;%</span> <span class="fu">ggplotly</span>(<span class="at">tooltip =</span> <span class="st">"text"</span>)</span></code><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>A partir deste gráfico de pontos e colunas (frequência de acidentes por data), podemos observar tanto a tendência crescente anual bem como a sazonalidade mensal. Além disso, e de forma mais interessante, é nítida a existência visual de uma banda superior e inferior: isto nos indica uma variabilidade muito grande na ocorrência de acidentes em datas muito próximas. Utilizando o zoom do gráfico, podemos investigar mais a fundo essas variabilidades: os dias com menos acidentes ocorrem na sua imensa maioria dois a dois, e os com mais, de cinco em cinco. Ou seja, a variabilidade pode ser explicada pelo fato de que a quantidade de acidentes é muito maior entre os dias da semana do que em finais de semana!</p>
+<p>Além disso, neste gráfico fica claro uma queda abrupta dos acidentes durante a pandemia, seguida de um aumento expressivo em quantidade e variabilidade.</p>
+<p>Okay, e quanto à faixa horária? Como os acidentes se distribuem? Vamos investigar com a agenda diária de acidentes:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Código</summary>
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1"></a>acidentes_data_matriz_AWKTR <span class="ot">&lt;-</span> acidentes_US_date[Civil_Twilight <span class="sc">==</span> <span class="st">"Day"</span> <span class="sc">|</span> Civil_Twilight <span class="sc">==</span> <span class="st">"Night"</span>, .N, by <span class="ot">=</span> .(Weekday, Time_Range)] <span class="sc">%&gt;%</span></span>
+<span id="cb26-2"><a href="#cb26-2"></a>  <span class="fu">setorder</span>(Weekday, <span class="sc">-</span>Time_Range) <span class="sc">%&gt;%</span> <span class="co"># order data set increasingly by weekday and time range</span></span>
+<span id="cb26-3"><a href="#cb26-3"></a>  <span class="fu">as.data.frame</span>() <span class="sc">%&gt;%</span> <span class="co"># Transforming data.table into data.frame</span></span>
+<span id="cb26-4"><a href="#cb26-4"></a>  <span class="fu">ggplot</span>() <span class="sc">+</span> </span>
+<span id="cb26-5"><a href="#cb26-5"></a>  <span class="fu">aes</span>(<span class="at">x =</span> Weekday, <span class="at">y =</span> Time_Range, <span class="at">fill =</span> N) <span class="sc">+</span></span>
+<span id="cb26-6"><a href="#cb26-6"></a>  <span class="fu">geom_tile</span>() <span class="sc">+</span> </span>
+<span id="cb26-7"><a href="#cb26-7"></a>  <span class="fu">scale_fill_gradient</span>(<span class="at">low =</span> <span class="st">"white"</span>, <span class="at">high =</span> <span class="st">"darkred"</span>) <span class="sc">+</span></span>
+<span id="cb26-8"><a href="#cb26-8"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Agenda Diaria de Acidentes"</span>, <span class="at">x =</span> <span class="st">"Dia da Semana"</span>, <span class="at">y =</span> <span class="st">"Horario"</span>) <span class="sc">+</span> </span>
+<span id="cb26-9"><a href="#cb26-9"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span> </span>
+<span id="cb26-10"><a href="#cb26-10"></a>  <span class="fu">scale_x_discrete</span>(<span class="at">position =</span> <span class="st">"top"</span>) <span class="sc">+</span></span>
+<span id="cb26-11"><a href="#cb26-11"></a>  <span class="fu">theme</span>(</span>
+<span id="cb26-12"><a href="#cb26-12"></a>    <span class="at">axis.title.x.top =</span> <span class="fu">element_text</span>(),</span>
+<span id="cb26-13"><a href="#cb26-13"></a>    <span class="at">axis.text.x.top =</span> <span class="fu">element_text</span>(),</span>
+<span id="cb26-14"><a href="#cb26-14"></a>    <span class="at">axis.line.x.top =</span> <span class="fu">element_line</span>(),</span>
+<span id="cb26-15"><a href="#cb26-15"></a>    <span class="at">axis.ticks.x.top =</span> <span class="fu">element_line</span>()</span>
+<span id="cb26-16"><a href="#cb26-16"></a>    </span>
+<span id="cb26-17"><a href="#cb26-17"></a>  )</span>
+<span id="cb26-18"><a href="#cb26-18"></a>acidentes_data_matriz_AWKTR</span></code><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Aqui, podemos observar que a quantidade de acidentes é maior nos horários de pico, entre 7hrs e 9hrs e entre 16hrs e 18hrs, e que a quantidade de acidentes é maior durante a semana do que nos finais de semana. Isso nos permite inferir que a quantidade de acidentes é maior nos horários de pico e durante a semana.</p>
+<p>Em uma de minhas intuitivas explorações, decidi investigar a relação entre a quantidade de acidentes e a luminosidade do dia (crepúsculo civil). Para isso, novamente realizei um gráfico de pontos e barras de acidentes por data, porém agora separando pelas categorias do crepúsculo civil:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Código</summary>
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1"></a>acidentes_data_timeseries_CT <span class="ot">&lt;-</span> acidentes_US_date[Civil_Twilight <span class="sc">==</span> <span class="st">"Day"</span> <span class="sc">|</span> Civil_Twilight <span class="sc">==</span> <span class="st">"Night"</span>, .(.N), by <span class="ot">=</span> .(Date, Civil_Twilight)] <span class="sc">%&gt;%</span> </span>
+<span id="cb27-2"><a href="#cb27-2"></a>  <span class="fu">setorder</span>(Date, Civil_Twilight) <span class="sc">%&gt;%</span> <span class="co"># order data set increasingly by date</span></span>
+<span id="cb27-3"><a href="#cb27-3"></a>  <span class="fu">as.data.frame</span>() <span class="sc">%&gt;%</span>  <span class="co"># Transforming data.table into data.frame</span></span>
+<span id="cb27-4"><a href="#cb27-4"></a>  <span class="fu">ggplot</span>() <span class="sc">+</span> </span>
+<span id="cb27-5"><a href="#cb27-5"></a>  <span class="fu">aes</span>(<span class="at">x =</span> Date, <span class="at">y =</span> N,</span>
+<span id="cb27-6"><a href="#cb27-6"></a>      <span class="at">text =</span> <span class="fu">paste</span>(<span class="st">"Data:"</span>, Date, <span class="st">"&lt;br&gt;Qtd. Acidentes:"</span>, N<span class="sc">/</span><span class="dv">1000</span>, <span class="st">"k"</span>)) <span class="sc">+</span> </span>
+<span id="cb27-7"><a href="#cb27-7"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">"identity"</span>, <span class="at">alpha =</span> <span class="fl">0.4</span>) <span class="sc">+</span></span>
+<span id="cb27-8"><a href="#cb27-8"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">color =</span> Civil_Twilight), <span class="at">alpha =</span> <span class="fl">0.4</span>, <span class="at">size =</span> <span class="fl">0.4</span>) <span class="sc">+</span> </span>
+<span id="cb27-9"><a href="#cb27-9"></a>  <span class="fu">scale_y_continuous</span>(</span>
+<span id="cb27-10"><a href="#cb27-10"></a>    <span class="at">labels =</span> <span class="fu">label_number</span>(<span class="at">scale =</span> <span class="dv">1</span><span class="sc">/</span><span class="dv">1000</span>, <span class="at">suffix =</span> <span class="st">"k"</span>) <span class="co"># Divide por 1000 e adiciona o sufixo "k"</span></span>
+<span id="cb27-11"><a href="#cb27-11"></a>  ) <span class="sc">+</span></span>
+<span id="cb27-12"><a href="#cb27-12"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">'Day'</span> <span class="ot">=</span> <span class="st">'#D9A404'</span>, <span class="st">'Night'</span> <span class="ot">=</span> <span class="st">'#0F3BBF'</span>)) <span class="sc">+</span></span>
+<span id="cb27-13"><a href="#cb27-13"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Qtd. de Acidentes por Data"</span>,</span>
+<span id="cb27-14"><a href="#cb27-14"></a>       <span class="at">x =</span> <span class="st">"Data"</span>, <span class="at">y =</span> <span class="st">"Qtd. Acidentes"</span>) <span class="sc">+</span></span>
+<span id="cb27-15"><a href="#cb27-15"></a>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb27-16"><a href="#cb27-16"></a>acidentes_data_timeseries_CT <span class="sc">%&gt;%</span> <span class="fu">ggplotly</span>(<span class="at">tooltip =</span> <span class="st">"text"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb27-17"><a href="#cb27-17"></a>  <span class="fu">layout</span>(</span>
+<span id="cb27-18"><a href="#cb27-18"></a>    <span class="at">legend =</span> <span class="fu">list</span>(</span>
+<span id="cb27-19"><a href="#cb27-19"></a>      <span class="at">title =</span> <span class="fu">list</span>(<span class="at">text =</span> <span class="st">'Crepusculo Civil'</span>),  <span class="co"># Título da legenda</span></span>
+<span id="cb27-20"><a href="#cb27-20"></a>      <span class="at">font =</span> <span class="fu">list</span>(<span class="at">size =</span> <span class="dv">14</span>),  <span class="co"># Tamanho da fonte</span></span>
+<span id="cb27-21"><a href="#cb27-21"></a>      <span class="at">itemsizing =</span> <span class="st">'constant'</span>,  <span class="co"># Define o tamanho fixo dos itens da legenda</span></span>
+<span id="cb27-22"><a href="#cb27-22"></a>      <span class="at">traceorder =</span> <span class="st">'normal'</span>,  <span class="co"># Ordem das legendas</span></span>
+<span id="cb27-23"><a href="#cb27-23"></a>      <span class="at">marker =</span> <span class="fu">list</span>(</span>
+<span id="cb27-24"><a href="#cb27-24"></a>        <span class="at">size =</span> <span class="dv">10</span></span>
+<span id="cb27-25"><a href="#cb27-25"></a>      )</span>
+<span id="cb27-26"><a href="#cb27-26"></a>    )</span>
+<span id="cb27-27"><a href="#cb27-27"></a>  )</span></code><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>A partir deste gráfico, conseguimos observar todos os resultados já vistos até aqui e mais um pouco: agora conseguimos observar que o crepúsculo civil apresenta uma sazonalidade mensal muito expressiva. Em geral, de outubro a dezembro, os acidentes noturnos atingem o seu pico e os acidentes diurnos os seus vales.</p>
+<p>Entretanto, ao mesmo tempo, não podemos afirmar que essa sazonalidade é devida ao crepúsculo civil, devido ao fato de que as estações do ano influenciam significativamente a luminosidade do dia no inverno e verão. Para contornar essa dúvida, investigamos e colocamos o mesmo gráfico, entretanto, ao invés de categorizar pelo crepúsculo civil, categorizamos por faixa horária do dia: acidentes que aconteceram das 06:00 às 18:00 e das 18:00 às 06:00.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Código</summary>
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1"></a>acidentes_data_timeseries_6_18 <span class="ot">&lt;-</span> acidentes_US_date[Day_Period <span class="sc">==</span> <span class="st">"06:00:00 -&gt; 18:00:00"</span> <span class="sc">|</span> Day_Period <span class="sc">==</span> <span class="st">"18:00:00 -&gt; 06:00:00"</span>, .(.N), by <span class="ot">=</span> .(Date, Day_Period)] <span class="sc">%&gt;%</span> </span>
+<span id="cb28-2"><a href="#cb28-2"></a>  <span class="fu">setorder</span>(Date, Day_Period) <span class="sc">%&gt;%</span> <span class="co"># order data set increasingly by date</span></span>
+<span id="cb28-3"><a href="#cb28-3"></a>  <span class="fu">as.data.frame</span>() <span class="sc">%&gt;%</span>  <span class="co"># Transforming data.table into data.frame</span></span>
+<span id="cb28-4"><a href="#cb28-4"></a>  <span class="fu">ggplot</span>() <span class="sc">+</span> </span>
+<span id="cb28-5"><a href="#cb28-5"></a>  <span class="fu">aes</span>(<span class="at">x =</span> Date, <span class="at">y =</span> N,</span>
+<span id="cb28-6"><a href="#cb28-6"></a>      <span class="at">text =</span> <span class="fu">paste</span>(<span class="st">"Data:"</span>, Date, <span class="st">"&lt;br&gt;Qtd. Acidentes:"</span>, N<span class="sc">/</span><span class="dv">1000</span>, <span class="st">"k"</span>)) <span class="sc">+</span> </span>
+<span id="cb28-7"><a href="#cb28-7"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">"identity"</span>, <span class="at">alpha =</span> <span class="fl">0.4</span>) <span class="sc">+</span></span>
+<span id="cb28-8"><a href="#cb28-8"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">color =</span> Day_Period), <span class="at">alpha =</span> <span class="fl">0.4</span>, <span class="at">size =</span> <span class="fl">0.4</span>) <span class="sc">+</span> </span>
+<span id="cb28-9"><a href="#cb28-9"></a>  <span class="fu">scale_y_continuous</span>(</span>
+<span id="cb28-10"><a href="#cb28-10"></a>    <span class="at">labels =</span> <span class="fu">label_number</span>(<span class="at">scale =</span> <span class="dv">1</span><span class="sc">/</span><span class="dv">1000</span>, <span class="at">suffix =</span> <span class="st">"k"</span>) <span class="co"># Divide por 1000 e adiciona o sufixo "k"</span></span>
+<span id="cb28-11"><a href="#cb28-11"></a>  ) <span class="sc">+</span></span>
+<span id="cb28-12"><a href="#cb28-12"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">'06:00:00 -&gt; 18:00:00'</span> <span class="ot">=</span> <span class="st">'#D9A404'</span>, <span class="st">'18:00:00 -&gt; 06:00:00'</span> <span class="ot">=</span> <span class="st">'#0F3BBF'</span>)) <span class="sc">+</span></span>
+<span id="cb28-13"><a href="#cb28-13"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Qtd. de Acidentes por Data"</span>, <span class="at">x =</span> <span class="st">"Data"</span>, <span class="at">y =</span> <span class="st">"Qtd. Acidentes"</span>) <span class="sc">+</span></span>
+<span id="cb28-14"><a href="#cb28-14"></a>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb28-15"><a href="#cb28-15"></a>acidentes_data_timeseries_6_18 <span class="sc">%&gt;%</span> <span class="fu">ggplotly</span>(<span class="at">tooltip =</span> <span class="st">"text"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb28-16"><a href="#cb28-16"></a>  <span class="fu">layout</span>(</span>
+<span id="cb28-17"><a href="#cb28-17"></a>    <span class="at">legend =</span> <span class="fu">list</span>(</span>
+<span id="cb28-18"><a href="#cb28-18"></a>      <span class="at">title =</span> <span class="fu">list</span>(<span class="at">text =</span> <span class="st">'Periodo do Dia'</span>),  <span class="co"># Título da legenda</span></span>
+<span id="cb28-19"><a href="#cb28-19"></a>      <span class="at">font =</span> <span class="fu">list</span>(<span class="at">size =</span> <span class="dv">14</span>),  <span class="co"># Tamanho da fonte</span></span>
+<span id="cb28-20"><a href="#cb28-20"></a>      <span class="at">itemsizing =</span> <span class="st">'constant'</span>,  <span class="co"># Define o tamanho fixo dos itens da legenda</span></span>
+<span id="cb28-21"><a href="#cb28-21"></a>      <span class="at">traceorder =</span> <span class="st">'normal'</span>,  <span class="co"># Ordem das legendas</span></span>
+<span id="cb28-22"><a href="#cb28-22"></a>      <span class="at">marker =</span> <span class="fu">list</span>(</span>
+<span id="cb28-23"><a href="#cb28-23"></a>        <span class="at">size =</span> <span class="dv">10</span></span>
+<span id="cb28-24"><a href="#cb28-24"></a>      )</span>
+<span id="cb28-25"><a href="#cb28-25"></a>    )</span>
+<span id="cb28-26"><a href="#cb28-26"></a>  )</span></code><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>A partir deste gráfico, conseguimos observar que a expressividade da sazonalidade mensal nao existe e, na verdade, é sutil em ambas as faixas horárias. Isso nos permite inferir que a sazonalidade observada no gráfico anterior é devida à luminosidade do dia e não às estações do ano. Entretanto, conseguimos perceber que diferença da quantidade de acidentes entre dias da semana e finais de semana permanecem em ambas as faixas horárias.</p>
+<p>E como se comporta a severidade dos acidentes ao longo do tempo? Vamos investigar a tendência da média de severidade dos acidentes por data:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Código</summary>
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1"></a>severity_data_points <span class="ot">&lt;-</span> acidentes_US_date[(Civil_Twilight <span class="sc">==</span> <span class="st">"Day"</span> <span class="sc">|</span> Civil_Twilight <span class="sc">==</span> <span class="st">"Night"</span>) <span class="sc">&amp;</span> Year <span class="sc">&gt;</span> <span class="dv">2016</span>,</span>
+<span id="cb29-2"><a href="#cb29-2"></a>                                           .(<span class="at">Severidade_Media =</span> <span class="fu">mean</span>(Severity)),</span>
+<span id="cb29-3"><a href="#cb29-3"></a>                                           by <span class="ot">=</span> .(Date)][<span class="fu">order</span>(Date)] <span class="sc">%&gt;%</span></span>
+<span id="cb29-4"><a href="#cb29-4"></a>  <span class="fu">ggplot</span>() <span class="sc">+</span> </span>
+<span id="cb29-5"><a href="#cb29-5"></a>  <span class="fu">aes</span>(<span class="at">x =</span> Date, <span class="at">y =</span> Severidade_Media) <span class="sc">+</span> </span>
+<span id="cb29-6"><a href="#cb29-6"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="fl">0.5</span>, <span class="at">alpha =</span> <span class="fl">0.1</span>, <span class="at">color =</span> <span class="st">"darkred"</span>,</span>
+<span id="cb29-7"><a href="#cb29-7"></a>             <span class="fu">aes</span>(<span class="at">text =</span> <span class="fu">paste</span>(<span class="st">"Data:"</span>, Date,</span>
+<span id="cb29-8"><a href="#cb29-8"></a>                              <span class="st">"&lt;br&gt;Severidade Média:"</span>, <span class="fu">round</span>(Severidade_Media, <span class="dv">1</span>)))) <span class="sc">+</span></span>
+<span id="cb29-9"><a href="#cb29-9"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">size =</span> <span class="fl">0.5</span>, <span class="at">se =</span> <span class="cn">FALSE</span>, <span class="at">color =</span> <span class="st">"darkred"</span>) <span class="sc">+</span></span>
+<span id="cb29-10"><a href="#cb29-10"></a>  <span class="fu">ylim</span>(<span class="dv">0</span>, <span class="dv">4</span>) <span class="sc">+</span></span>
+<span id="cb29-11"><a href="#cb29-11"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Severidade Média por Data"</span>, <span class="at">x =</span> <span class="st">"Data"</span>, <span class="at">y =</span> <span class="st">"Severidade"</span>) <span class="sc">+</span></span>
+<span id="cb29-12"><a href="#cb29-12"></a>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb29-13"><a href="#cb29-13"></a>severity_data_points <span class="sc">%&gt;%</span> <span class="fu">ggplotly</span>(<span class="at">tooltip =</span> <span class="st">"text"</span>)</span></code><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Essa tendência linear decrescente pode ser explicada pela variação da quantidade de acidentes ao longo do tempo para cada uma das severidades. Observemo-las:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Código</summary>
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1"></a>acidentes_ano_barplot <span class="ot">&lt;-</span> acidentes_US_date[Civil_Twilight <span class="sc">==</span> <span class="st">"Day"</span> <span class="sc">|</span> Civil_Twilight <span class="sc">==</span> <span class="st">"Night"</span>,</span>
+<span id="cb30-2"><a href="#cb30-2"></a>                                           .(.N,</span>
+<span id="cb30-3"><a href="#cb30-3"></a>                                             <span class="at">Distinct_date =</span> <span class="fu">uniqueN</span>(Date),</span>
+<span id="cb30-4"><a href="#cb30-4"></a>                                             <span class="at">Media_diaria =</span> <span class="fu">round</span>(.N<span class="sc">/</span><span class="fu">uniqueN</span>(Date),<span class="dv">0</span>)),</span>
+<span id="cb30-5"><a href="#cb30-5"></a>                                           by <span class="ot">=</span> .(Year, Severity)][</span>
+<span id="cb30-6"><a href="#cb30-6"></a>                                             <span class="fu">order</span>(Year,Severity)] <span class="sc">%&gt;%</span> </span>
+<span id="cb30-7"><a href="#cb30-7"></a>  <span class="fu">setorder</span>(Year) <span class="sc">%&gt;%</span> <span class="co"># order data set increasingly by year</span></span>
+<span id="cb30-8"><a href="#cb30-8"></a>  <span class="fu">as.data.frame</span>() <span class="sc">%&gt;%</span> <span class="co"># Transforming data.table into data.frame</span></span>
+<span id="cb30-9"><a href="#cb30-9"></a>  <span class="fu">ggplot</span>() <span class="sc">+</span> </span>
+<span id="cb30-10"><a href="#cb30-10"></a>  <span class="fu">aes</span>(<span class="at">x =</span> Year, <span class="at">y =</span> N,</span>
+<span id="cb30-11"><a href="#cb30-11"></a>      <span class="at">text =</span> <span class="fu">paste</span>(<span class="st">"Ano:"</span>, Year,</span>
+<span id="cb30-12"><a href="#cb30-12"></a>                   <span class="st">"&lt;br&gt;Qtd. Acidentes:"</span>, <span class="fu">round</span>(N<span class="sc">/</span><span class="dv">1000</span>, <span class="dv">1</span>), <span class="st">"k"</span>,</span>
+<span id="cb30-13"><a href="#cb30-13"></a>                   <span class="st">"&lt;br&gt;Disa Obs. no Ano:"</span>, Distinct_date,</span>
+<span id="cb30-14"><a href="#cb30-14"></a>                   <span class="st">"&lt;br&gt;Acidentes por Dia:"</span>, <span class="fu">round</span>(Media_diaria<span class="sc">/</span><span class="dv">1000</span>, <span class="dv">1</span>), <span class="st">"k"</span>)) <span class="sc">+</span> </span>
+<span id="cb30-15"><a href="#cb30-15"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">"identity"</span>, <span class="at">fill =</span> <span class="st">"darkred"</span>) <span class="sc">+</span> </span>
+<span id="cb30-16"><a href="#cb30-16"></a>  <span class="fu">scale_y_continuous</span>(</span>
+<span id="cb30-17"><a href="#cb30-17"></a>    <span class="at">labels =</span> <span class="fu">label_number</span>(<span class="at">scale =</span> <span class="dv">1</span><span class="sc">/</span><span class="dv">1000</span>, <span class="at">suffix =</span> <span class="st">"k"</span>) <span class="co"># Divide por 1000 e adiciona o sufixo "k"</span></span>
+<span id="cb30-18"><a href="#cb30-18"></a>  ) <span class="sc">+</span></span>
+<span id="cb30-19"><a href="#cb30-19"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Qtd. de Acidentes por Ano"</span>, <span class="at">x =</span> <span class="st">"Ano"</span>, <span class="at">y =</span> <span class="st">"Qtd. Acidentes"</span>) <span class="sc">+</span></span>
+<span id="cb30-20"><a href="#cb30-20"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>Severity, <span class="at">scales =</span> <span class="st">"free_y"</span>) <span class="sc">+</span></span>
+<span id="cb30-21"><a href="#cb30-21"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span> </span>
+<span id="cb30-22"><a href="#cb30-22"></a>  <span class="fu">theme</span>(<span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>)) <span class="sc">+</span> </span>
+<span id="cb30-23"><a href="#cb30-23"></a>  <span class="fu">plotly</span>()</span>
+<span id="cb30-24"><a href="#cb30-24"></a>acidentes_ano_barplot <span class="sc">%&gt;%</span> <span class="fu">ggplotly</span>(<span class="at">tooltip =</span> <span class="st">"text"</span>)</span></code><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Aqui, podemos observar que a quantidade de acidentes é maior para a severidade 2, seguida pela 3, 4 e 1, respectivamente. Além disso, a quantidade de acidentes para a severidade 1 e 2 são as que mais crescem, ao passo que a quantidade de acidentes para a severidade 3 é a que mais decresce. Os acidentes de severidade 4, por outro lado, apresentam uma tendência de crescimento ao longo dos anos proporcionalmente menor. A explicação das causas da diminuição da severidade média não está no escopo desta análise, entretanto, podemos destacar que algumas hipóteses podem ser levantadas, como a melhoria da infraestrutura viária, a conscientização dos motoristas, a melhoria dos sistemas de segurança dos veículos, alteração de legislações de trânsito, entre outros.</p>
+<p>Para fechar as análises de variáveis temporais, investigamos o padrao da média de severidade dos acidentes entre as faixas horárias e dias da semana, bem como ao longo dos anos:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Código</summary>
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1"></a>acidentes_data_matriz_SWKTR <span class="ot">&lt;-</span> acidentes_US_date[Civil_Twilight <span class="sc">==</span> <span class="st">"Day"</span> <span class="sc">|</span> Civil_Twilight <span class="sc">==</span> <span class="st">"Night"</span>, .(.N, <span class="at">Severity =</span> <span class="fu">mean</span>(Severity)), by <span class="ot">=</span> .(Weekday, Time_Range)] <span class="sc">%&gt;%</span></span>
+<span id="cb31-2"><a href="#cb31-2"></a>  <span class="fu">setorder</span>(Weekday, <span class="sc">-</span>Time_Range) <span class="sc">%&gt;%</span> <span class="co"># order data set increasingly by weekday and time range</span></span>
+<span id="cb31-3"><a href="#cb31-3"></a>  <span class="fu">as.data.frame</span>() <span class="sc">%&gt;%</span> <span class="co"># Transforming data.table into data.frame</span></span>
+<span id="cb31-4"><a href="#cb31-4"></a>  <span class="fu">ggplot</span>() <span class="sc">+</span> </span>
+<span id="cb31-5"><a href="#cb31-5"></a>  <span class="fu">aes</span>(<span class="at">x =</span> Weekday, <span class="at">y =</span> Time_Range, <span class="at">fill =</span> Severity) <span class="sc">+</span></span>
+<span id="cb31-6"><a href="#cb31-6"></a>  <span class="fu">geom_tile</span>() <span class="sc">+</span> </span>
+<span id="cb31-7"><a href="#cb31-7"></a>  <span class="fu">scale_fill_gradient</span>(<span class="at">low =</span> <span class="st">"white"</span>, <span class="at">high =</span> <span class="st">"darkred"</span>) <span class="sc">+</span></span>
+<span id="cb31-8"><a href="#cb31-8"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Agenda Diaria da Severidade Média de Acidentes"</span>, <span class="at">x =</span> <span class="st">"Dia da Semana"</span>, <span class="at">y =</span> <span class="st">"Horario"</span>) <span class="sc">+</span> </span>
+<span id="cb31-9"><a href="#cb31-9"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span> </span>
+<span id="cb31-10"><a href="#cb31-10"></a>  <span class="fu">scale_x_discrete</span>(<span class="at">position =</span> <span class="st">"top"</span>) <span class="sc">+</span></span>
+<span id="cb31-11"><a href="#cb31-11"></a>  <span class="fu">theme</span>(</span>
+<span id="cb31-12"><a href="#cb31-12"></a>    <span class="at">axis.title.x.top =</span> <span class="fu">element_text</span>(),</span>
+<span id="cb31-13"><a href="#cb31-13"></a>    <span class="at">axis.text.x.top =</span> <span class="fu">element_text</span>(),</span>
+<span id="cb31-14"><a href="#cb31-14"></a>    <span class="at">axis.line.x.top =</span> <span class="fu">element_line</span>(),</span>
+<span id="cb31-15"><a href="#cb31-15"></a>    <span class="at">axis.ticks.x.top =</span> <span class="fu">element_line</span>()</span>
+<span id="cb31-16"><a href="#cb31-16"></a>    </span>
+<span id="cb31-17"><a href="#cb31-17"></a>  )</span>
+<span id="cb31-18"><a href="#cb31-18"></a>acidentes_data_matriz_SWKTR</span></code><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Destes, conseguimos observar que, mesmo que os acidentes ocorram menos durante os finais de semana, são eles os mais severos. Além disso, a severidade média dos acidentes tem diminuído ao longo dos anos!</p>
+</section>
+<section id="resultados-para-as-variáveis-de-localização" class="level3" data-number="3.2">
+<h3 data-number="3.2" class="anchored" data-anchor-id="resultados-para-as-variáveis-de-localização"><span class="header-section-number">3.2</span> Resultados para as <a href="#grupo_variaveis">Variáveis</a> de Localização</h3>
+<p>A maioria dos acidentes ocorre em cidades maiores e mais populosas, bem como em estados com maior densidade demográfica. Isso pode ser atribuído ao maior volume de tráfego, maior número de veículos em circulação, e maior complexidade das vias urbanas nessas regiões. Além disso, áreas urbanas costumam apresentar condições mais propensas a acidentes, como interseções movimentadas, trânsito intenso e uma maior frequência de eventos climáticos adversos que afetam a visibilidade e a dirigibilidade. Fatores socioeconômicos também podem desempenhar um papel, já que cidades maiores tendem a concentrar atividades econômicas e culturais, atraindo um número significativo de pessoas e aumentando o risco de incidentes</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Código</summary>
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1"></a><span class="fu">leaflet</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb32-2"><a href="#cb32-2"></a>      <span class="fu">addTiles</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb32-3"><a href="#cb32-3"></a>      <span class="fu">addPolygons</span>(</span>
+<span id="cb32-4"><a href="#cb32-4"></a>        <span class="at">data =</span> acidentes_p_estado,</span>
+<span id="cb32-5"><a href="#cb32-5"></a>        <span class="at">fillColor =</span> <span class="sc">~</span><span class="fu">palestado</span>(n),</span>
+<span id="cb32-6"><a href="#cb32-6"></a>        <span class="at">weight =</span> <span class="dv">2</span>,</span>
+<span id="cb32-7"><a href="#cb32-7"></a>        <span class="at">color =</span> <span class="st">"black"</span>,</span>
+<span id="cb32-8"><a href="#cb32-8"></a>        <span class="at">fillOpacity =</span> <span class="fl">0.4</span>,</span>
+<span id="cb32-9"><a href="#cb32-9"></a>        <span class="at">label =</span> <span class="sc">~</span>NAME,</span>
+<span id="cb32-10"><a href="#cb32-10"></a>        <span class="at">popup =</span> <span class="sc">~</span><span class="fu">glue</span>(<span class="st">"&lt;b&gt;Estado: &lt;/b&gt; {NAME}&lt;br&gt;&lt;b&gt;Quantidade de acidentes: &lt;/b&gt; {n}"</span>),</span>
+<span id="cb32-11"><a href="#cb32-11"></a>        <span class="at">highlightOptions =</span> <span class="fu">highlightOptions</span>(</span>
+<span id="cb32-12"><a href="#cb32-12"></a>          <span class="at">weight =</span> <span class="dv">3</span>,</span>
+<span id="cb32-13"><a href="#cb32-13"></a>          <span class="at">color =</span> <span class="st">"#666"</span>,</span>
+<span id="cb32-14"><a href="#cb32-14"></a>          <span class="at">fillOpacity =</span> <span class="fl">0.6</span>,</span>
+<span id="cb32-15"><a href="#cb32-15"></a>          <span class="at">bringToFront =</span> <span class="cn">TRUE</span></span>
+<span id="cb32-16"><a href="#cb32-16"></a>        ),</span>
+<span id="cb32-17"><a href="#cb32-17"></a>        <span class="at">group =</span> <span class="st">"Nível estadual"</span></span>
+<span id="cb32-18"><a href="#cb32-18"></a>      ) <span class="sc">%&gt;%</span></span>
+<span id="cb32-19"><a href="#cb32-19"></a>      <span class="fu">addLegend</span>(</span>
+<span id="cb32-20"><a href="#cb32-20"></a>        <span class="st">"bottomright"</span>,</span>
+<span id="cb32-21"><a href="#cb32-21"></a>        <span class="at">pal =</span> palestado,</span>
+<span id="cb32-22"><a href="#cb32-22"></a>        <span class="at">values =</span> acidentes_p_estado<span class="sc">$</span>n,</span>
+<span id="cb32-23"><a href="#cb32-23"></a>        <span class="at">title =</span> <span class="st">"Número de Acidentes"</span>,</span>
+<span id="cb32-24"><a href="#cb32-24"></a>        <span class="at">opacity =</span> <span class="dv">1</span>,</span>
+<span id="cb32-25"><a href="#cb32-25"></a>        <span class="at">group =</span> <span class="st">"Nível estadual"</span></span>
+<span id="cb32-26"><a href="#cb32-26"></a>      ) <span class="sc">%&gt;%</span></span>
+<span id="cb32-27"><a href="#cb32-27"></a>      <span class="fu">addHeatmap</span>(</span>
+<span id="cb32-28"><a href="#cb32-28"></a>        <span class="at">data =</span> mapa_de_calor,</span>
+<span id="cb32-29"><a href="#cb32-29"></a>        <span class="at">lng =</span> <span class="sc">~</span><span class="st">`</span><span class="at">Start Lng</span><span class="st">`</span>,</span>
+<span id="cb32-30"><a href="#cb32-30"></a>        <span class="at">lat =</span> <span class="sc">~</span><span class="st">`</span><span class="at">Start Lat</span><span class="st">`</span>,</span>
+<span id="cb32-31"><a href="#cb32-31"></a>        <span class="at">intensity =</span> <span class="sc">~</span>n,</span>
+<span id="cb32-32"><a href="#cb32-32"></a>        <span class="at">blur =</span> <span class="dv">20</span>,</span>
+<span id="cb32-33"><a href="#cb32-33"></a>        <span class="at">radius =</span> <span class="dv">15</span>,</span>
+<span id="cb32-34"><a href="#cb32-34"></a>        <span class="at">group =</span> <span class="st">"Mapa de calor"</span></span>
+<span id="cb32-35"><a href="#cb32-35"></a>      ) <span class="sc">%&gt;%</span></span>
+<span id="cb32-36"><a href="#cb32-36"></a>      <span class="fu">addLayersControl</span>(</span>
+<span id="cb32-37"><a href="#cb32-37"></a>        <span class="at">baseGroups =</span> <span class="fu">c</span>(<span class="st">"Nível estadual"</span>, <span class="st">"Mapa de calor"</span>),</span>
+<span id="cb32-38"><a href="#cb32-38"></a>        <span class="at">position =</span> <span class="st">"topright"</span></span>
+<span id="cb32-39"><a href="#cb32-39"></a>      )</span></code><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+<section id="resultados-para-as-variáveis-de-condições-climáticas" class="level3" data-number="3.3">
+<h3 data-number="3.3" class="anchored" data-anchor-id="resultados-para-as-variáveis-de-condições-climáticas"><span class="header-section-number">3.3</span> Resultados para as <a href="#grupo_variaveis">Variáveis</a> de Condições Climáticas</h3>
+<p>A análise das condições climáticas revelou que a maioria dos acidentes ocorreu em dias com céu limpo. A correlação entre variáveis climáticas, como temperatura, umidade e pressão, mostrou interações tanto positivas quanto negativas entre elas. A frequência de acidentes variou conforme as condições climáticas, com maior incidência em dias claros.</p>
+<p>A distribuição de precipitação indicou que a maioria dos acidentes ocorreu sem chuva, e a visibilidade também foi um fator importante. Quando analisada a relação entre precipitação e severidade do acidente, não foi observada uma correlação clara, sugerindo que outros fatores influenciam a gravidade dos acidentes.</p>
+</section>
+<section id="resultados-para-as-variáveis-de-sinalização-e-infraestrutura" class="level3" data-number="3.4">
+<h3 data-number="3.4" class="anchored" data-anchor-id="resultados-para-as-variáveis-de-sinalização-e-infraestrutura"><span class="header-section-number">3.4</span> Resultados para as <a href="#grupo_variaveis">Variáveis</a> de Sinalização e Infraestrutura</h3>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Código</summary>
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1"></a>   poi_Severity <span class="ot">&lt;-</span> acidentes_US_sample[,<span class="fu">c</span>(<span class="dv">3</span>,<span class="dv">30</span><span class="sc">:</span><span class="dv">42</span>)]</span>
+<span id="cb33-2"><a href="#cb33-2"></a>    </span>
+<span id="cb33-3"><a href="#cb33-3"></a>    poi_sum <span class="ot">&lt;-</span> poi_Severity[, Total <span class="sc">:</span><span class="er">=</span> <span class="fu">rowSums</span>(.SD),</span>
+<span id="cb33-4"><a href="#cb33-4"></a>                            .SDcols <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"Amenity"</span>, <span class="st">"Bump"</span>, <span class="st">"Crossing"</span>, <span class="st">"Give_Way"</span>, <span class="st">"Junction"</span>,</span>
+<span id="cb33-5"><a href="#cb33-5"></a>                                        <span class="st">"No_Exit"</span>, <span class="st">"Railway"</span>, <span class="st">"Roundabout"</span>, <span class="st">"Station"</span>, <span class="st">"Stop"</span>,</span>
+<span id="cb33-6"><a href="#cb33-6"></a>                                        <span class="st">"Traffic_Calming"</span>,<span class="st">"Traffic_Signal"</span>, <span class="st">"Turning_Loop"</span>)]</span>
+<span id="cb33-7"><a href="#cb33-7"></a>    </span>
+<span id="cb33-8"><a href="#cb33-8"></a>    severityPoi_sum_table <span class="ot">&lt;-</span> poi_sum[, .(Severity, Total)] <span class="sc">%&gt;%</span> table</span>
+<span id="cb33-9"><a href="#cb33-9"></a>    severityPoi_sum_df <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(severityPoi_sum_table)</span>
+<span id="cb33-10"><a href="#cb33-10"></a>    </span>
+<span id="cb33-11"><a href="#cb33-11"></a>    severity_sumPoI <span class="ot">&lt;-</span> severityPoi_sum_df <span class="sc">%&gt;%</span> <span class="fu">summarise</span>(<span class="at">.by =</span> Severity, <span class="at">sum_PoI =</span> <span class="fu">sum</span>(Freq))</span>
+<span id="cb33-12"><a href="#cb33-12"></a>    severityPoi_sum_df <span class="ot">&lt;-</span> severityPoi_sum_df <span class="sc">%&gt;%</span></span>
+<span id="cb33-13"><a href="#cb33-13"></a>      <span class="fu">left_join</span>(severity_sumPoI) <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">Rel_Freq =</span> Freq<span class="sc">/</span>sum_PoI)</span>
+<span id="cb33-14"><a href="#cb33-14"></a>    </span>
+<span id="cb33-15"><a href="#cb33-15"></a>    </span>
+<span id="cb33-16"><a href="#cb33-16"></a>   absolute_severity_bars <span class="ot">&lt;-</span>  severityPoi_sum_df <span class="sc">%&gt;%</span> as.data.frame <span class="sc">%&gt;%</span></span>
+<span id="cb33-17"><a href="#cb33-17"></a>      <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> Severity, <span class="at">y=</span>Freq, <span class="at">fill =</span> Total)) <span class="sc">+</span></span>
+<span id="cb33-18"><a href="#cb33-18"></a>      <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">"identity"</span>, <span class="at">position =</span> <span class="st">"dodge"</span>) <span class="sc">+</span></span>
+<span id="cb33-19"><a href="#cb33-19"></a>      <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> comma) <span class="sc">+</span></span>
+<span id="cb33-20"><a href="#cb33-20"></a>      <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Severidade de acidentes por ponto de interesse"</span>,</span>
+<span id="cb33-21"><a href="#cb33-21"></a>           <span class="at">x =</span> <span class="cn">NULL</span>,</span>
+<span id="cb33-22"><a href="#cb33-22"></a>           <span class="at">y =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb33-23"><a href="#cb33-23"></a>      <span class="fu">theme_minimal</span>()</span>
+<span id="cb33-24"><a href="#cb33-24"></a>   absolute_severity_bars</span></code><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>O gráfico de frequência absoluta da severidade por soma de pontos de interesse nos mostra que a maior quantidade de pontos ao redor de um acidente é 7, e também que a maioria dos acidentes ocorre em locais sem pontos de interesse, e ocorrem com frequência reduzida quanto mais pontos de interesse existem ao redor, porém pode apenas indicar que existem poucos lugares com muitos pontos de interesse. Também é que evidente que acidentes com grau 2 de severidade são extremamente mais comuns que os outros.</p>
+</section>
+<section id="resultados-para-as-variáveis-de-duração-do-acidente" class="level3" data-number="3.5">
+<h3 data-number="3.5" class="anchored" data-anchor-id="resultados-para-as-variáveis-de-duração-do-acidente"><span class="header-section-number">3.5</span> Resultados para as <a href="#grupo_variaveis">Variáveis</a> de Duração do acidente</h3>
+<p>Os dados possuem muitos outliers e acidentes que duraram até 2 milhões de minutos, o que dificultou a nossa análise. Porém, de acordo com o gráfico mostrado nas técnicas estatísticas analisadas, podemos observar que os acidentes de severidade 2 e 4 têm uma variabilidade muito maior em questão do tempo. Podemos observar também, que a maior parte dos acidentes de severidade 1 e 3, costumam demorar entre 0 e 100 minutos.</p>
+</section>
+</section>
+<section id="referências" class="level2 unnumbered" data-number="4">
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">4 Referências</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" data-line-spacing="2" role="list">
+<div id="ref-moosavi2019countrywidetrafficaccidentdataset" class="csl-entry" role="listitem">
+Moosavi, S., Samavatian, M. H., Parthasarathy, S., &amp; Ramnath, R. (2019). <em>A Countrywide Traffic Accident Dataset</em>. <a href="https://arxiv.org/abs/1906.05409">https://arxiv.org/abs/1906.05409</a>
+</div>
+<div id="ref-Moosavi_2019" class="csl-entry" role="listitem">
+Moosavi, S., Samavatian, M. H., Parthasarathy, S., Teodorescu, R., &amp; Ramnath, R. (2019). Accident Risk Prediction based on Heterogeneous Sparse Data: New Dataset and Insights. <em>Proceedings of the 27th ACM SIGSPATIAL International Conference on Advances in Geographic Information Systems</em>, 33–42. <a href="https://doi.org/10.1145/3347146.3359078">https://doi.org/10.1145/3347146.3359078</a>
+</div>
+</div></section></div></main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copiada");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copiada");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
